@@ -1420,10 +1420,16 @@ begin
 end;
 { -------------------------------------------------------------------------- }
 function RolX(I, C : DWord) : DWord; register;
-{$IFDEF NO_ASSEMBLY}
-begin
-  Result:=RolDWord(I,C);
-{$ELSE !NO_ASSEMBLY}
+{$IFDEF FPC}
+  {$IFDEF NO_ASSEMBLY}
+  begin
+    Result:=RolDWord(I,C);
+  {$ELSE}
+  asm
+    mov  ecx, edx         {get count to cl}
+    rol  eax, cl          {rotate eax by cl}
+  {$ENDIF !NO_ASSEMBLY}
+{$ELSE}
   asm
   {$IFDEF CPUX64}
     mov eax, ecx    {Result := I}

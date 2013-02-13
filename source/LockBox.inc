@@ -139,6 +139,11 @@
   {$ENDIF}
 {$ENDIF}
 
+{$IFDEF CPUX64}
+  {$DEFINE NO_ASSEMBLY}
+{$ENDIF}
+
+
 
 {$A+} {Word Align Data}
 {$Q-} {Overflow Checking}
