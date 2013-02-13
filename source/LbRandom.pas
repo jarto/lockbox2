@@ -46,6 +46,9 @@ uses
 {$IFDEF UsingCLX}
   Types,
 {$ENDIF}
+{$IFDEF FPC}
+  LCLIntf,
+{$ENDIF}
   Sysutils,
   Syncobjs,
   Math,
@@ -102,8 +105,7 @@ type
     function Random32: DWord;
   end;
 
-var
-  LbFallbackRandomGenerator: TSha1HashRandom;
+function LbFallbackRandomGenerator: TSha1HashRandom;
 
 function LbSysRandom32: DWORD;
 function lbSysRandomByte: Byte;
@@ -111,11 +113,22 @@ function lbSysRandomByte: Byte;
 implementation
 
 uses
-  Classes;
+  Classes {$IFDEF MACOS}, Macapi.CoreServices{$ENDIF};
+
+var
+  FLbFallbackRandomGenerator: TSha1HashRandom;
+
 
 {$IFDEF HAS_ARC4RANDOM}
 function arc4random: LongWord; cdecl; external '/usr/lib/libc.dylib' name '_arc4random';
 {$ENDIF}
+
+function LbFallbackRandomGenerator: TSha1HashRandom;
+begin
+  if FLbFallbackRandomGenerator = nil then
+    FLbFallbackRandomGenerator := TSha1HashRandom.Create;
+  Result := FLbFallbackRandomGenerator;
+end;
 
 function LbDevRandom32(const FileName: string; out RandomNumber: DWORD): Boolean;
 //  Get a 32 bit random number from /dev/random or /dev/urandom
@@ -125,13 +138,13 @@ begin
   Stream := TFileStream.Create(FileName,fmOpenRead);
   try
     Stream.Read(RandomNumber, SizeOf(RandomNumber));
-    result:=true;
+    Result := True;
   finally
     Stream.Free;
   end;
 end;
 
-function LbDevRandomByte(const FileName: AnsiString; out RandomNumber: Byte): Boolean;
+function LbDevRandomByte(const FileName: string; out RandomNumber: Byte): Boolean;
 //  Get a 32 bit random number from /dev/random or /dev/urandom
 var
   Stream: TFileStream;
@@ -139,7 +152,7 @@ begin
   Stream := TFileStream.Create(FileName,fmOpenRead);
   try
     Stream.Read(RandomNumber, SizeOf(RandomNumber));
-    result:=true;
+    Result := True;
   finally
     Stream.Free;
   end;
@@ -322,8 +335,19 @@ begin
   inherited Destroy;
 end;
 
+{$IFDEF MACOS}
+function GetTickCount: DWORD;
+begin
+  Result := AbsoluteToNanoseconds(UpTime) div 1000000;
+end;
+
+function GetCurrentThreadId: TThreadID;
+begin
+  Result := TThread.CurrentThread.ThreadID;
+end;
+{$ENDIF}
+
 function TSha1HashRandom.Random32: DWord;
-var t: ^TSystemTime;
 begin
   FLock.Acquire;
   try
@@ -335,9 +359,7 @@ begin
     if FRandomPos=0 then begin
       inc(FCounter);
       //Hash is calculated from a buffer consisting of localtime, a 32-bit random number, the current thread id and a counter
-      SetLength(FHashSource,SizeOf(TSystemTime));
-      t:=Addr(FHashSource[1]); GetLocalTime(t^);
-      FHashSource:=FHashSource+IntToStr(Random($FFFFFFFF))+IntToStr(GetCurrentThreadId)+IntToStr(FCounter);
+      FHashSource:=IntToStr(GetTickCount)+IntToStr(Random($FFFFFFFF))+IntToStr(GetCurrentThreadId)+IntToStr(FCounter);
       HashSHA1(FDigest,FHashSource[1],Length(FHashSource));
     end;
     FResultPos:=Addr(FDigest[FRandomPos]);
@@ -348,12 +370,6 @@ begin
   end;
 end;
 
-initialization
-
-LbFallbackRandomGenerator := TSha1HashRandom.Create;
-
 finalization
-
-LbFallbackRandomGenerator.Free;
-
+  FreeAndNil(FLbFallbackRandomGenerator);
 end.
