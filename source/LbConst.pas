@@ -23,7 +23,7 @@
  *
  * ***** END LICENSE BLOCK ***** *)
 {*********************************************************}
-{*                  LBCONST.PAS 2.08                     *}
+{*                  LBCONST.PAS 2.09                     *}
 {*     Copyright (c) 2002 TurboPower Software Co         *}
 {*                 All rights reserved.                  *}
 {*********************************************************}
@@ -61,7 +61,7 @@ const
 resourcestring
 
   { version number }
-  sLbVersion = '2.08';
+  sLbVersion = '2.09';
 
   { big integer errors }
   sBIBufferUnderflow   = 'Buffer UnderFlow';

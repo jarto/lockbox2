@@ -23,7 +23,7 @@
  *
  * ***** END LICENSE BLOCK ***** *)
 {*********************************************************}
-{*                  LBUTILS.PAS 2.08                     *}
+{*                  LBUTILS.PAS 2.09                     *}
 {*     Copyright (c) 2002 TurboPower Software Co         *}
 {*                 All rights reserved.                  *}
 {*********************************************************}

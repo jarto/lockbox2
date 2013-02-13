@@ -23,7 +23,7 @@
  *
  * ***** END LICENSE BLOCK ***** *)
 {*********************************************************}
-{*                   LBSTRING.PAS 2.08                   *}
+{*                   LBSTRING.PAS 2.09                   *}
 {*     Copyright (c) 2002 TurboPower Software Co         *}
 {*                 All rights reserved.                  *}
 {*********************************************************}

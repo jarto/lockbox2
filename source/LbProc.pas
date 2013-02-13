@@ -23,7 +23,7 @@
  *
  * ***** END LICENSE BLOCK ***** *)
 {*********************************************************}
-{*                   LBPROC.PAS 2.08                     *}
+{*                   LBPROC.PAS 2.09                     *}
 {*     Copyright (c) 2002 TurboPower Software Co         *}
 {*                 All rights reserved.                  *}
 {*********************************************************}
