@@ -46,9 +46,6 @@ uses
 {$IFDEF UsingCLX}
   Types,
 {$ENDIF}
-{$IFDEF FPC}
-  LCLIntf,
-{$ENDIF}
   Sysutils,
   Syncobjs,
   Math,
@@ -358,8 +355,8 @@ begin
     end;
     if FRandomPos=0 then begin
       inc(FCounter);
-      //Hash is calculated from a buffer consisting of localtime, a 32-bit random number, the current thread id and a counter
-      FHashSource:=IntToStr(GetTickCount)+IntToStr(Random($FFFFFFFF))+IntToStr(GetCurrentThreadId)+IntToStr(FCounter);
+      //Hash is calculated from a buffer consisting of current time, two 32-bit random numbers, the current thread id and a counter
+      FHashSource:=FloatToStr(Now)+IntToStr(Random($FFFFFFFF))+IntToStr(Random($FFFFFFFF))+IntToStr(GetCurrentThreadId)+IntToStr(FCounter);
       HashSHA1(FDigest,FHashSource[1],Length(FHashSource));
     end;
     FResultPos:=Addr(FDigest[FRandomPos]);
