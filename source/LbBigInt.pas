@@ -1881,7 +1881,7 @@ begin
   LbBiInit(N2 , 2);
   LbBiInit(remBN, N1.dwUsed);
   try
-    for cnt := 0 to cTotalSimple2KPrimes do begin
+    for cnt := 0 to cSimplePrimesToCheck-1 do begin
       LbBiClear(N2);
       LbBiAddWord(N2, cPREPEND_ARRAY, SimplePrimes[ cnt ]);
       if LbBiCompare( N1, N2 ) = cEQUAL_TO then
@@ -2006,16 +2006,13 @@ var
   Buf : pByte;
   len : Integer;
   passed : Boolean;
-  random : TLbRandomGenerator;
 begin
-  random := TLbRandomGenerator.create;
   passed := False;
   len    := N1.IntBuf.dwLen;
   Buf   := pByte(AllocMem(len));
   try
     while(not passed)do begin
-      fillchar(Buf^, len, $00);
-      random.RandomBytes(Buf^, len);
+      lbSysRandomBuff(Buf^, len);
 
       LbBiAddBuf(N1, cPREPEND_ARRAY, Buf, len);
 
@@ -2040,40 +2037,26 @@ begin
     end;
   finally
     FreeMem(Buf, len);
-    random.Free;
   end;
 end;
 { ------------------------------------------------------------------- }
 procedure LbBiRandomSimplePrime(var N1 : LbInteger);
 var
   x : Word;
-  RG : TLbRandomGenerator;
 begin
-  RG := TLbRandomGenerator.create;
-  try
-    repeat
-      RG.RandomBytes(x, SizeOf(x));
-      x := x and $0FFF;
-    until(x > 3) and (x <= High(SimplePrimes));
-    LbBiAddWord(N1, cPREPEND_ARRAY, SimplePrimes[x]);
-  finally
-    RG.Free;
-  end;
+  repeat
+    lbSysRandomBuff(x, SizeOf(x));
+    x := x and $0FFF;
+  until(x > 3) and (x <= High(SimplePrimes));
+  LbBiAddWord(N1, cPREPEND_ARRAY, SimplePrimes[x]);
 end;
 { ------------------------------------------------------------------- }
 procedure LbBiRandomBytes(var N1 : LbInteger; Count : Cardinal);
-var
-  RG : TLbRandomGenerator;
 begin
   LbBiClear(N1);
   LbBiReAlloc(N1, Count);
-  RG := TLbRandomGenerator.create;
-  try
-    RG.RandomBytes(N1.IntBuf.pBuf^, Count);
-    N1.dwUsed := Count;
-  finally
-    RG.Free;
-  end;
+  lbSysRandomBuff(N1.IntBuf.pBuf^, Count);
+  N1.dwUsed := Count;
 end;
 { ------------------------------------------------------------------- }
 procedure LbBiExtendedEuclid(var u : LbInteger; var v : LbInteger;

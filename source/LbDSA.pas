@@ -869,12 +869,7 @@ end;
 procedure TLbDSA.RandomBlock(var ABlock : TLbDSABlock);
   { fill block with random bytes }
 begin
-  with TLbRandomGenerator.Create do
-    try
-      RandomBytes(ABlock, SizeOf(ABlock));
-    finally
-      Free;
-    end;
+  lbSysRandomBuff(ABlock,SizeOf(ABlock));
 end;
 { -------------------------------------------------------------------------- }
 procedure TLbDSA.DoGetSeed(var ASeed : TLbDSABlock);
