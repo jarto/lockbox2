@@ -46,7 +46,7 @@ const
   cBytes3072 = 384;
 
   { defaults }
-  cDefIterations  = 20;
+  cDefIterations  = 4;
 
 {!!.06}
 const
