@@ -38,6 +38,9 @@ If a random number can't be obtained from a cryptographically secure
 random number source, TSha1HashRandom is used as a source for high quality
 random numbers. TSha1HashRandom is new SHA1-based random number generator.
 
+LbRandom.pas also contains a new procedure, that can be used to fill buffers
+with random content: lbSysRandomBuff.
+
 NOTICE!
 
 Even though this code works with FPC and Lazarus, I haven't created any
