@@ -42,6 +42,8 @@ const
   cBytes512 = 64;
   cBytes768 = 96;
   cBytes1024 = 128;
+  cBytes2048 = 256;
+  cBytes3072 = 384;
 
   { defaults }
   cDefIterations  = 20;

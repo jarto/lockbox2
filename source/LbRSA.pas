@@ -57,11 +57,13 @@ const
   { cipher block size constants }                                    {!!.02}
   cRSAMinPadBytes = 11;
   cRSACipherBlockSize : array[TLbAsymKeySize] of Word =
-    (cBytes128, cBytes256, cBytes512, cBytes768, cBytes1024);
+    (cBytes128, cBytes256, cBytes512, cBytes768, cBytes1024,
+     cBytes2048, cBytes3072);
   cRSAPlainBlockSize : array[TLbAsymKeySize] of Word =
     (cBytes128-cRSAMinPadBytes, cBytes256-cRSAMinPadBytes,
      cBytes512-cRSAMinPadBytes, cBytes768-cRSAMinPadBytes,
-     cBytes1024-cRSAMinPadBytes);
+     cBytes1024-cRSAMinPadBytes, cBytes2048-cRSAMinPadBytes,
+     cBytes3072-cRSAMinPadBytes);
 
 type
   { ciphertext block types }                                         {!!.02}
