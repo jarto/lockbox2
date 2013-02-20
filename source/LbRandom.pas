@@ -106,6 +106,7 @@ function LbFallbackRandomGenerator: TSha1HashRandom;
 
 function LbSysRandom32: DWORD;
 function lbSysRandomByte: Byte;
+procedure lbSysRandomBuff( var buff; len : DWORD );
 
 implementation
 
@@ -184,6 +185,21 @@ begin
   if LbDevRandom32('/dev/urandom', Result) then exit;
 {$ENDIF}
   result:=LbFallbackRandomGenerator.Random32;
+end;
+
+procedure lbSysRandomBuff( var buff; len : DWORD );
+var i,c: Integer;
+    pd: pDword;
+begin
+  c:=0; pd:=addr(buff);
+  for i:=1 to (len div 4) do begin
+    pd^:=LbSysRandom32;
+    inc(pd); inc(c,4);
+  end;
+  while c<len do begin
+    TByteArray(buff)[c]:=lbSysRandomByte;
+    inc(c);
+  end;
 end;
 
 { == TLbRandomGenerator ==================================================== }

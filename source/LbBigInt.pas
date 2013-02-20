@@ -1881,7 +1881,7 @@ begin
   LbBiInit(N2 , 2);
   LbBiInit(remBN, N1.dwUsed);
   try
-    for cnt := 0 to cSimplePrimesToCheck-1 do begin
+    for cnt := 0 to cTotalSimple2KPrimes do begin
       LbBiClear(N2);
       LbBiAddWord(N2, cPREPEND_ARRAY, SimplePrimes[ cnt ]);
       if LbBiCompare( N1, N2 ) = cEQUAL_TO then
