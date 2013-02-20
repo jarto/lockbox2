@@ -297,9 +297,9 @@ begin
 end;
 { -------------------------------------------------------------------------- }
 procedure TLbRanLFS.SetSeed;
+{$IFDEF MSWINDOWS}
 const
   hold : integer = 1;
-{$IFDEF MSWINDOWS}
 var
   _time : TSYSTEMTIME;
 {$ENDIF}
