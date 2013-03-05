@@ -9,9 +9,9 @@ Biggest changes:
 1. Changes in asm code
 
 The original LockBox had 32 bit asm-code, which prevented it from being
-compiled on 64 bit FPC. I wrote pascal versions of those. All the old asm
-code is still used with 32 bit cpus. Sebastian Zierer also wrote new
-assembly code for 64 bit Delphi.
+compiled on 64 bit FPC. I and Arthur Pijpers wrote pascal versions of
+those. All the old asm code is still used with 32 bit Delphi.
+Sebastian Zierer also wrote new assembly code for 64 bit Delphi. 
 
 If you try to compile LockBox2 on other non-intel platforms that FPC
 supports, use {$DEFINE NO_ASSEMBLY} to use the pascal code.
