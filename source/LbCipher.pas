@@ -19,7 +19,7 @@
  * Portions created by the Initial Developer are Copyright (C) 1997-2002
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Sebastian Zierer, Jarto Tarpio
+ * Contributor(s): Sebastian Zierer, Jarto Tarpio, Arthur Pijpers
  *
  * ***** END LICENSE BLOCK ***** *)
 {*********************************************************}
@@ -739,12 +739,9 @@ var
 
   procedure SplitBlock(const Block : TDESBlock;  var L, R : DWord); register;
 {$IFDEF NO_ASSEMBLY}
-  var W: ^DWord;
   begin
-    W:=Addr(Block);
-    L:=W^;
-    inc(W,4);
-    R:=W^;
+    L := (Block[0] shl 24) or (Block[1] shl 16) or (Block[2] shl 8) or Block[3];
+    R := (Block[4] shl 24) or (Block[5] shl 16) or (Block[6] shl 8) or Block[7];
 {$ELSE}
   asm
     push ebx
@@ -772,12 +769,15 @@ var
 
   procedure JoinBlock(const L, R : LongInt;  var Block : TDESBlock); register;
 {$IFDEF NO_ASSEMBLY}
-  var W: ^LongInt;
   begin
-    W:=Addr(Block);
-    W^:=L;
-    inc(W,4);
-    W^:=R;
+    Block[0] :=  TLongIntRec(R).HiHi;
+    Block[1] :=  TLongIntRec(R).HiLo;
+    Block[2] :=  TLongIntRec(R).LoHi;
+    Block[3] :=  TLongIntRec(R).LoLo;
+    Block[4] :=  TLongIntRec(L).HiHi;
+    Block[5] :=  TLongIntRec(L).HiLo;
+    Block[6] :=  TLongIntRec(L).LoHi;
+    Block[7] :=  TLongIntRec(L).LoLo;
 {$ELSE}
   asm
     push ebx
