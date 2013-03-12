@@ -97,6 +97,8 @@ resourcestring
   sRSABlockSize512Err   = 'Invalid block size for key512';
   sRSABlockSize768Err   = 'Invalid block size for key768';
   sRSABlockSize1024Err  = 'Invalid block size for key1024';
+  sRSABlockSize2048Err  = 'Invalid block size for key2048';
+  sRSABlockSize3072Err  = 'Invalid block size for key3072';
   sRSAEncodingErr       = 'RSA encoding error: too much data for block';
   sRSADecodingErrBTS    = 'RSA decoding error: Block too small';
   sRSADecodingErrBTL    = 'RSA decoding error: Block too large';

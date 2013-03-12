@@ -19,7 +19,7 @@
  * Portions created by the Initial Developer are Copyright (C) 1997-2002
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Sebastian Zierer
+ * Contributor(s): Sebastian Zierer, Jarto Tarpio
  *
  * ***** END LICENSE BLOCK ***** *)
 {*********************************************************}
@@ -77,6 +77,10 @@ type
   TRSACipherBlock768 = array[0..cBytes768-1] of Byte;
   PRSACipherBlock1024 = ^TRSACipherBlock1024;
   TRSACipherBlock1024 = array[0..cBytes1024-1] of Byte;
+  PRSACipherBlock2048 = ^TRSACipherBlock2048;
+  TRSACipherBlock2048 = array[0..cBytes2048-1] of Byte;
+  PRSACipherBlock3072 = ^TRSACipherBlock3072;
+  TRSACipherBlock3072 = array[0..cBytes3072-1] of Byte;
 
   { plaintext block types }                                          {!!.02}
   PRSAPlainBlock128 = ^TRSAPlainBlock128;
@@ -89,13 +93,17 @@ type
   TRSAPlainBlock768 = array[0..cBytes768-12] of Byte;
   PRSAPlainBlock1024 = ^TRSAPlainBlock1024;
   TRSAPlainBlock1024 = array[0..cBytes1024-12] of Byte;
+  PRSAPlainBlock2048 = ^TRSAPlainBlock2048;
+  TRSAPlainBlock2048 = array[0..cBytes2048-12] of Byte;
+  PRSAPlainBlock3072 = ^TRSAPlainBlock3072;
+  TRSAPlainBlock3072 = array[0..cBytes3072-12] of Byte;
 
   { default block type }
   TRSAPlainBlock  = TRSAPlainBlock512;
   TRSACipherBlock = TRSACipherBlock512;
 
   { signature types }
-  TRSASignatureBlock = array[0..cBytes1024-1] of Byte;
+  TRSASignatureBlock = array[0..cBytes3072-1] of Byte;
   TRSAHashMethod  = (hmMD5, hmSHA1);
 
 
@@ -264,6 +272,14 @@ function  EncryptRSA1024(PublicKey : TLbRSAKey; const InBlock : TRSAPlainBlock10
             var OutBlock : TRSACipherBlock1024) : Longint;
 function  DecryptRSA1024(PrivateKey : TLbRSAKey; const InBlock : TRSACipherBlock1024;
             var OutBlock : TRSAPlainBlock1024) : Longint;
+function  EncryptRSA2048(PublicKey : TLbRSAKey; const InBlock : TRSAPlainBlock2048;
+            var OutBlock : TRSACipherBlock2048) : Longint;
+function  DecryptRSA2048(PrivateKey : TLbRSAKey; const InBlock : TRSACipherBlock2048;
+            var OutBlock : TRSAPlainBlock2048) : Longint;
+function  EncryptRSA3072(PublicKey : TLbRSAKey; const InBlock : TRSAPlainBlock3072;
+            var OutBlock : TRSACipherBlock3072) : Longint;
+function  DecryptRSA3072(PrivateKey : TLbRSAKey; const InBlock : TRSACipherBlock3072;
+            var OutBlock : TRSAPlainBlock3072) : Longint;
 {!!.02}
 
 function  EncryptRSA(PublicKey : TLbRSAKey; const InBlock : TRSAPlainBlock;
@@ -305,13 +321,13 @@ type
 procedure RSADecodeBlock(biBlock : TLbBigInt);
 var
   i : DWord;
-  Buf : TRSAPlainBlock1024;
+  Buf : TRSAPlainBlock3072;
 begin
   { verify block format }
   i := biBlock.Size;
   if (i < cRSAMinPadBytes) then
     raise Exception.Create(sRSADecodingErrBTS);
-  if (i > cBytes1024) then
+  if (i > cBytes3072) then
     raise Exception.Create(sRSADecodingErrBTL);
   if (biBlock.GetByteValue(i) <> Byte(bt01)) and (biBlock.GetByteValue(i) <> Byte(bt02)) then
     raise Exception.Create(sRSADecodingErrIBT);
@@ -630,6 +646,46 @@ begin
   Result := DecryptRSAEx(PrivateKey, @InBlock, @OutBlock);
 end;
 { -------------------------------------------------------------------------- }
+{!!.02}
+function  EncryptRSA2048(PublicKey : TLbRSAKey; const InBlock : TRSAPlainBlock2048;
+            var OutBlock : TRSACipherBlock2048) : Longint;
+  { encrypt plaintext block with 2048-bit RSA public key }
+begin
+  if (PublicKey.KeySize <> aks2048) then
+    raise Exception.Create(sRSABlockSize2048Err);
+  Result := EncryptRSAEx(PublicKey, @InBlock, @OutBlock, SizeOf(InBlock));
+end;
+{ -------------------------------------------------------------------------- }
+{!!.02}
+function  DecryptRSA2048(PrivateKey : TLbRSAKey; const InBlock : TRSACipherBlock2048;
+            var OutBlock : TRSAPlainBlock2048) : Longint;
+  { decrypt ciphertext block with 2048-bit RSA private key }
+begin
+  if (PrivateKey.KeySize <> aks2048) then
+    raise Exception.Create(sRSABlockSize2048Err);
+  Result := DecryptRSAEx(PrivateKey, @InBlock, @OutBlock);
+end;
+{ -------------------------------------------------------------------------- }
+{!!.02}
+function  EncryptRSA3072(PublicKey : TLbRSAKey; const InBlock : TRSAPlainBlock3072;
+            var OutBlock : TRSACipherBlock3072) : Longint;
+  { encrypt plaintext block with 3072-bit RSA public key }
+begin
+  if (PublicKey.KeySize <> aks3072) then
+    raise Exception.Create(sRSABlockSize3072Err);
+  Result := EncryptRSAEx(PublicKey, @InBlock, @OutBlock, SizeOf(InBlock));
+end;
+{ -------------------------------------------------------------------------- }
+{!!.02}
+function  DecryptRSA3072(PrivateKey : TLbRSAKey; const InBlock : TRSACipherBlock3072;
+            var OutBlock : TRSAPlainBlock3072) : Longint;
+  { decrypt ciphertext block with 3072-bit RSA private key }
+begin
+  if (PrivateKey.KeySize <> aks3072) then
+    raise Exception.Create(sRSABlockSize3072Err);
+  Result := DecryptRSAEx(PrivateKey, @InBlock, @OutBlock);
+end;
+{ -------------------------------------------------------------------------- }
 function EncryptRSA(PublicKey : TLbRSAKey; const InBlock : TRSAPlainBlock;
            var OutBlock : TRSACipherBlock) : Longint;
   { encrypt plaintext block with 512-bit RSA public key }
@@ -672,7 +728,7 @@ var
   PlainBlockSize, CipherBlockSize : Integer;
   i : Integer;
   pInBlk, pOutBlk       : Pointer;
-  PlainBlock, CipherBlock : TRSACipherBlock1024;
+  PlainBlock, CipherBlock : TRSACipherBlock3072;
 begin
   PlainBlockSize := cRSAPlainBlockSize[Key.KeySize];
   CipherBlockSize := cRSACipherBlockSize[Key.KeySize];
