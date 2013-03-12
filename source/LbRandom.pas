@@ -102,8 +102,6 @@ type
     function Random32: DWord;
   end;
 
-function LbFallbackRandomGenerator: TSha1HashRandom;
-
 function LbSysRandom32: DWORD;
 function lbSysRandomByte: Byte;
 procedure lbSysRandomBuff( var buff; len : DWORD );
@@ -120,13 +118,6 @@ var
 {$IFDEF HAS_ARC4RANDOM}
 function arc4random: LongWord; cdecl; external '/usr/lib/libc.dylib' name '_arc4random';
 {$ENDIF}
-
-function LbFallbackRandomGenerator: TSha1HashRandom;
-begin
-  if FLbFallbackRandomGenerator = nil then
-    FLbFallbackRandomGenerator := TSha1HashRandom.Create;
-  Result := FLbFallbackRandomGenerator;
-end;
 
 function LbDevRandom32(const FileName: string; out RandomNumber: DWORD): Boolean;
 //  Get a 32 bit random number from /dev/random or /dev/urandom
@@ -168,7 +159,7 @@ begin
 {$IFDEF USE_DEV_URANDOM}
   if LbDevRandomByte('/dev/urandom', Result) then exit;
 {$ENDIF}
-  result:=LbFallbackRandomGenerator.Random32 and $FF;
+  result:=FLbFallbackRandomGenerator.Random32 and $FF;
 end;
 
 function LbSysRandom32: DWORD;
@@ -184,11 +175,11 @@ begin
 {$IFDEF USE_DEV_URANDOM}
   if LbDevRandom32('/dev/urandom', Result) then exit;
 {$ENDIF}
-  result:=LbFallbackRandomGenerator.Random32;
+  result:=FLbFallbackRandomGenerator.Random32;
 end;
 
 procedure lbSysRandomBuff( var buff; len : DWORD );
-var i,c: Integer;
+var i,c: DWord;
     pd: pDword;
 begin
   c:=0; pd:=addr(buff);
@@ -371,8 +362,8 @@ begin
     end;
     if FRandomPos=0 then begin
       inc(FCounter);
-      //Hash is calculated from a buffer consisting of current time, two 32-bit random numbers, the current thread id and a counter
-      FHashSource:=FloatToStr(Now)+IntToStr(Random($FFFFFFFF))+IntToStr(Random($FFFFFFFF))+IntToStr(GetCurrentThreadId)+IntToStr(FCounter);
+      //Hash is calculated from a buffer consisting of current time, two 32-bit random integers, the current thread id and a counter
+      FHashSource:=FloatToStr(Now)+IntToStr(Random($7FFFFFFF))+IntToStr(Random($7FFFFFFF))+IntToStr(GetCurrentThreadId)+IntToStr(FCounter);
       HashSHA1(FDigest,FHashSource[1],Length(FHashSource));
     end;
     FResultPos:=Addr(FDigest[FRandomPos]);
@@ -383,6 +374,10 @@ begin
   end;
 end;
 
+initialization
+  FLbFallbackRandomGenerator := TSha1HashRandom.Create;
+
 finalization
   FreeAndNil(FLbFallbackRandomGenerator);
+
 end.
