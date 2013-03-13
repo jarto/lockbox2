@@ -1880,12 +1880,12 @@ begin
     C1^:=C1^ xor C2^;
     inc(i,4); inc(C1); inc(C2);
   end;
-  if i<=Count then begin
+  if i<Count then begin
     B1:=PByte(Mem1)+i; B2:=PByte(Mem2)+i;
-    while i<=Count do begin
+    repeat
       B1^:=B1^xor B2^;
       inc(i); inc(B1); inc(B2);
-    end;
+    until i>=Count;
   end;
 {$ELSE}
 asm
