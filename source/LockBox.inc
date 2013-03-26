@@ -35,6 +35,8 @@
                               // (this could be problematic for backward compatibility
 {$ENDIF}
 
+{$IFNDEF FPC}
+
 {$IFDEF VER80}                { Delphi 1 }
   !!! LockBox 2.0 does not support Delphi 1
 {$ENDIF}
@@ -111,11 +113,12 @@
  {$ENDIF}
 {$ENDIF}
 
+{$ENDIF}  //  If not FPC
 
 { determine whether CLX is used, should always be on Linux }
 {$IFDEF LINUX}
   {$IFNDEF FPC}
-    {$DEFINE UsingCLX } 
+    {$DEFINE UsingCLX }
   {$ENDIF}
 {$ENDIF LINUX}
 
