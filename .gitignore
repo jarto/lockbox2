@@ -1,0 +1,17 @@
+*.[oa]
+*.ppu
+*.lps
+*.compiled
+*.bak*
+*.dcu
+*.~*~
+*.local
+*.identcache
+__history
+*.drc
+*.map
+*.exe
+*.dll
+fp.ini
+fp.cfg
+fp.dsk
