@@ -54,6 +54,11 @@ uses
 const
   tmp = 1;
 
+{$IFNDEF FPC}
+type
+  PtrInt = Integer;
+  PtrUInt = Cardinal;
+{$ENDIF}
 
 { TLbRandomGenerator }
 type
