@@ -54,6 +54,11 @@ uses
 const
   tmp = 1;
 
+{$IFNDEF FPC}
+type
+  PtrInt = Integer;
+  PtrUInt = Cardinal;
+{$ENDIF}
 
 { TLbRandomGenerator }
 type
@@ -211,7 +216,7 @@ procedure TLbRandomGenerator.ChurnSeed;
 var
   RandomSeed : array[ 0..15 ] of byte;
   Context : TMD5Context;
-  lcg : TLbRanLFS; 
+  lcg : TLbRanLFS;
   i : integer;
 begin
   lcg := TLbRanLFS.Create;
@@ -321,7 +326,7 @@ begin
                       ( ShiftRegister shr 1  ) xor
                       ( ShiftRegister )) and $00000001 ) shl 31 ) or
                       ( ShiftRegister shr 1 );
-                   
+
   result := ShiftRegister and $00000001;
 end;
 
@@ -363,7 +368,7 @@ begin
     if FRandomPos=0 then begin
       inc(FCounter);
       //Hash is calculated from a buffer consisting of current time, two 32-bit random integers, the current thread id and a counter
-      FHashSource:=FloatToStr(Now)+IntToStr(Random($7FFFFFFF))+IntToStr(Random($7FFFFFFF))+IntToStr(GetCurrentThreadId)+IntToStr(FCounter);
+      FHashSource:=FloatToStr(Now)+IntToStr(Random($7FFFFFFF))+IntToStr(Random($7FFFFFFF))+IntToStr(PtrUInt(GetCurrentThreadId))+IntToStr(FCounter);
       HashSHA1(FDigest,FHashSource[1],Length(FHashSource));
     end;
     FResultPos:=Addr(FDigest[FRandomPos]);
