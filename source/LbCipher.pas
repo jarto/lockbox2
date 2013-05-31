@@ -42,9 +42,6 @@ uses
 {$IFDEF POSIX}
   Types,
 {$ENDIF}
-{$IFDEF UsingCLX}
-  Types,
-{$ENDIF}
   Classes;
 const
   { largest structure that can be created }

@@ -44,10 +44,10 @@ uses
   Types,
 {$ENDIF}
 {$IFDEF UsingCLX}
-  Types,
+  libc,
 {$ENDIF}
   Sysutils,
-  Syncobjs,
+  SyncObjs,
   Math,
   LbCipher;
 

@@ -42,9 +42,6 @@ uses
 {$IFDEF POSIX}
   Types,
 {$ENDIF}
-{$IFDEF UsingCLX}
-  Types,
-{$ENDIF}
   Classes,
   SysUtils,
   LbBigInt,
