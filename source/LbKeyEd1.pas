@@ -40,33 +40,38 @@ unit LbKeyEd1;
 interface
 
 uses
-{$IFDEF MSWINDOWS}
-  Windows,
-  Controls,
   Forms,
-  Dialogs,
-  Graphics,
-  Buttons,
-  ExtCtrls,
-  StdCtrls,
-  ComCtrls,
-  Tabnotbk,
-{$ENDIF}
+{$IFDEF FPC}
 
-{$IFDEF Version6}
-  DesignIntf,
-  DesignEditors,
 {$ELSE}
-  DsgnIntf,
+  {$IFDEF MSWINDOWS}
+    Windows,
+    Controls,
+    Dialogs,
+    Graphics,
+    Buttons,
+    ExtCtrls,
+    StdCtrls,
+    ComCtrls,
+    Tabnotbk,
+  {$ENDIF}
+
+  {$IFDEF Version6}
+    DesignIntf,
+    DesignEditors,
+  {$ELSE}
+    DsgnIntf,
+  {$ENDIF}
+
+  {$IFDEF UsingCLX}
+    QForms,
+    QGraphics,
+    QControls,
+    QStdCtrls,
+    QExtCtrls,
+  {$ENDIF}
 {$ENDIF}
 
-{$IFDEF UsingCLX}
-  QForms,
-  QGraphics,
-  QControls,
-  QStdCtrls,
-  QExtCtrls,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -170,8 +175,8 @@ begin
   try
     case cbxKeyType.ItemIndex of
       0: GenerateRandomKey(Key, SizeOf(Key));
-      1: GenerateLMDKey(Key, SizeOf(Key), {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF}(AnsiUpperCase(edtPassphrase.Text)));
-      2: GenerateLMDKey(Key, SizeOf(Key), {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF}(edtPassphrase.Text));
+      1: GenerateLMDKey(Key, SizeOf(Key), StringToUTF8(UpperCase(edtPassphrase.Text)));
+      2: GenerateLMDKey(Key, SizeOf(Key), StringToUTF8(edtPassphrase.Text));
     end;
     edtKey.Text := BufferToHex(Key, KeySizes[TKeySizeIndex(cbxKeySize.ItemIndex)]);
   finally

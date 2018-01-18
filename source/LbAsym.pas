@@ -19,7 +19,7 @@
  * Portions created by the Initial Developer are Copyright (C) 1997-2002
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * ***** END LICENSE BLOCK ***** *)
 {*********************************************************}
@@ -59,7 +59,7 @@ type
   TLbAsymmetricKey = class
     protected {private}
       FKeySize  : TLbAsymKeySize;
-      FPassphrase : AnsiString;
+      FPassphrase : RawByteString;
       procedure SetKeySize(Value : TLbAsymKeySize); virtual;
 {!!.06}
       procedure MovePtr(var Ptr : PByte; var Max : Integer );
@@ -87,7 +87,7 @@ type
     public {properties}
       property KeySize : TLbAsymKeySize
         read FKeySize write SetKeySize;
-      property Passphrase : AnsiString
+      property Passphrase : RawByteString
         read FPassphrase write FPassphrase;
   end;
 
@@ -127,20 +127,12 @@ type
       procedure SignBuffer(const Buf; BufLen : Cardinal); virtual; abstract;
       procedure SignFile(const AFileName : string); virtual; abstract;
       procedure SignStream(AStream : TStream); virtual; abstract;
-      procedure SignString(const AStr : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-      procedure SignStringA(const AStr : AnsiString); virtual; abstract;
-      {$IFDEF UNICODE}
-      procedure SignStringW(const AStr : UnicodeString); virtual; abstract;
-      {$ENDIF}
+      procedure SignString(const AStr : RawByteString); virtual; abstract;
 
       function  VerifyBuffer(const Buf; BufLen : Cardinal) : Boolean; virtual; abstract;
       function  VerifyFile(const AFileName : string) : Boolean; virtual; abstract;
       function  VerifyStream(AStream : TStream) : Boolean; virtual; abstract;
-      function  VerifyString(const AStr : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF}) : Boolean;
-      function  VerifyStringA(const AStr : AnsiString) : Boolean; virtual; abstract;
-      {$IFDEF UNICODE}
-      function  VerifyStringW(const AStr : UnicodeString) : Boolean; virtual; abstract;
-      {$ENDIF}
+      function  VerifyString(const AStr : RawByteString) : Boolean; virtual; abstract;
     public {properties}
       property KeySize : TLbAsymKeySize
         read FKeySize write SetKeySize;
@@ -153,7 +145,7 @@ type
 implementation
 
 uses
-  LbCipher, LbProc, LbUtils;
+  LbCipher, LbProc;
 
 
 { == TLbAsymmetricKey ====================================================== }
@@ -353,7 +345,7 @@ begin
   if (FPassphrase <> '') then begin
     MemStream := TMemoryStream.Create;
     try
-      StringHashMD5A(TMD5Digest(BFKey), FPassphrase);
+      StringHashMD5(TMD5Digest(BFKey), FPassphrase);
       BFEncryptStream(aStream, MemStream, BFKey, False);
       Len := MemStream.Size;
       if (Len > SizeOf(KeyBuf)) then
@@ -391,7 +383,7 @@ begin
     try
       MemStream.Write(KeyBuf, Len);
       MemStream.Position := 0;
-      StringHashMD5A(TMD5Digest(BFKey), FPassphrase);
+      StringHashMD5(TMD5Digest(BFKey), FPassphrase);
       BFEncryptStream(MemStream, aStream, BFKey, True);
     finally
       MemStream.Free;
@@ -491,24 +483,6 @@ end;
 procedure TLbSignature.SetKeySize(Value : TLbAsymKeySize);
 begin
   FKeySize := Value;
-end;
-
-procedure TLbSignature.SignString(const AStr: {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-begin
-  {$IFDEF LOCKBOXUNICODE}
-  SignStringW(AStr);
-  {$ELSE}
-  SignStringA(AStr);
-  {$ENDIF}
-end;
-
-function TLbSignature.VerifyString(const AStr: {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF}): Boolean;
-begin
-  {$IFDEF LOCKBOXUNICODE}
-  Result := VerifyStringW(AStr);
-  {$ELSE}
-  Result := VerifyStringA(AStr);
-  {$ENDIF}
 end;
 
 end.

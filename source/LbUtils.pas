@@ -49,7 +49,43 @@ procedure DebugStr(const AStr : string);
 procedure DebugLogFile(const AFileName : string);
 {$ENDIF}
 
+function StringToUTF8(const AValue: String): UTF8String;
+{$IFNDEF UNICODE}
+function UTF8ToString(const AValue: UTF8String): String;
+{$ENDIF}
+
+
+
 implementation
+
+{$IFDEF FPC}
+  function UTF8ToString(const AValue: UTF8String): String;
+  begin
+    Result := AValue;
+  end;
+
+  function StringToUTF8(const AValue: String): UTF8String;
+  begin
+    Result := AValue;
+  end;
+{$ELSE}
+  {$IFDEF UNICODE}
+  function StringToUTF8(const AValue: String): UTF8String;
+  begin
+    Result := UTF8Encode(AValue);
+  end;
+  {$ELSE}
+  function UTF8ToString(const AValue: UTF8String): String;
+  begin
+    Result := Utf8ToAnsi(AValue);
+  end;
+
+  function StringToUTF8(const AValue: String): UTF8String;
+  begin
+    Result := AnsiToUtf8(AValue);
+  end;
+  {$ENDIF}
+{$ENDIF}
 
 
 {$IFDEF Debugging}
@@ -103,7 +139,7 @@ begin
   Result := False;
   Str := '';
   for i := 1 to Length(Hex) do
-    if {$IFDEF Unicode}CharInSet(UpCase(Hex[i]), ['0'..'9', 'A'..'F']){$ELSE} Upcase(Hex[i]) in ['0'..'9', 'A'..'F'] {$ENDIF} then
+    if {$IFDEF Unicode}CharInSet(Hex[i], ['0'..'9', 'A'..'F', 'a'..'f']){$ELSE} Hex[i] in ['0'..'9', 'A'..'F', 'a'..'f'] {$ENDIF} then
       Str := Str + Hex[i];
 
   FillChar(Buf, BufSize, #0);

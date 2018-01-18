@@ -32,7 +32,7 @@
 
 unit LbDSA;
   {-DSA signature component and key classes}
-                                                              
+
 interface
 
 uses
@@ -195,18 +195,12 @@ type
       procedure SignBuffer(const Buf; BufLen : Cardinal); override;
       procedure SignFile(const AFileName : string);  override;
       procedure SignStream(AStream : TStream); override;
-      procedure SignStringA(const AStr : AnsiString); override;
-      {$IFDEF UNICODE}
-      procedure SignStringW(const AStr : UnicodeString); override;
-      {$ENDIF}
+      procedure SignString(const AStr : RawByteString); override;
 
       function  VerifyBuffer(const Buf; BufLen : Cardinal) : Boolean; override;
       function  VerifyFile(const AFileName : string) : Boolean; override;
       function  VerifyStream(AStream : TStream) : Boolean; override;
-      function  VerifyStringA(const AStr : AnsiString) : Boolean; override;
-      {$IFDEF UNICODE}
-      function  VerifyStringW(const AStr : UnicodeString) : Boolean; override;
-      {$ENDIF}
+      function  VerifyString(const AStr : RawByteString) : Boolean; override;
 
       procedure Clear;
       function GeneratePQG : Boolean;
@@ -1111,25 +1105,14 @@ begin
   SignHash(Digest);
 end;
 { -------------------------------------------------------------------------- }
-procedure TLbDSA.SignStringA(const AStr : AnsiString);
+procedure TLbDSA.SignString(const AStr : RawByteString);
   { generate DSA signature of string data }
 var
   Digest : TSHA1Digest;
 begin
-  StringHashSHA1A(Digest, AStr);
+  StringHashSHA1(Digest, AStr);
   SignHash(Digest);
 end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-procedure TLbDSA.SignStringW(const AStr : UnicodeString);
-  { generate DSA signature of string data }
-var
-  Digest : TSHA1Digest;
-begin
-  StringHashSHA1W(Digest, AStr);
-  SignHash(Digest);
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 function TLbDSA.VerifyBuffer(const Buf; BufLen : Cardinal) : Boolean;
   { verify DSA signature agrees with buffer data }
@@ -1158,24 +1141,13 @@ begin
   Result := VerifyHash(Digest);
 end;
 { -------------------------------------------------------------------------- }
-function TLbDSA.VerifyStringA(const AStr : AnsiString) : Boolean;
+function TLbDSA.VerifyString(const AStr : RawByteString) : Boolean;
   { verify DSA signature agrees with string data }
 var
   Digest : TSHA1Digest;
 begin
-  StringHashSHA1A(Digest, AStr);
+  StringHashSHA1(Digest, AStr);
   Result := VerifyHash(Digest);
 end;
-
-{$IFDEF UNICODE}
-function TLbDSA.VerifyStringW(const AStr : UnicodeString) : Boolean;
-  { verify DSA signature agrees with string data }
-var
-  Digest : TSHA1Digest;
-begin
-  StringHashSHA1W(Digest, AStr);
-  Result := VerifyHash(Digest);
-end;
-{$ENDIF}
 
 end.

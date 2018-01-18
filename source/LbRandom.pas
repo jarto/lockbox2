@@ -48,7 +48,6 @@ uses
 {$ENDIF}
   Sysutils,
   SyncObjs,
-  Math,
   LbCipher;
 
 const
@@ -131,6 +130,7 @@ var
 begin
   Stream := TFileStream.Create(FileName,fmOpenRead);
   try
+    RandomNumber := 0;
     Stream.Read(RandomNumber, SizeOf(RandomNumber));
     Result := True;
   finally
@@ -145,6 +145,7 @@ var
 begin
   Stream := TFileStream.Create(FileName,fmOpenRead);
   try
+    RandomNumber := 0;
     Stream.Read(RandomNumber, SizeOf(RandomNumber));
     Result := True;
   finally
