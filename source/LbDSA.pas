@@ -36,7 +36,7 @@ unit LbDSA;
 interface
 
 uses
-{$IFDEF MSWINDOWS}
+{$IFNDEF FPC}
   Windows,
 {$ENDIF}
 {$IFDEF POSIX}

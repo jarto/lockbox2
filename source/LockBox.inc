@@ -31,10 +31,7 @@
 {Conditional defines that affect compilation}
 
 {$IFDEF FPC}
-  {$MODE DELPHI}
-  {$IF not defined(CPUI386) or not defined(CPU32)}
-    {$DEFINE NO_ASSEMBLY}
-  {$IFEND}
+  {$DEFINE NO_ASSEMBLY}
 {$ELSE}
   {$IFNDEF UNICODE}
     RawByteString = type AnsiString;

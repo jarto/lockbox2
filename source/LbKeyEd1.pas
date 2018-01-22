@@ -35,46 +35,28 @@
 unit LbKeyEd1;
   {-TKey128 generation dialog}
 
-{$R *.dfm}
-
 interface
 
 uses
-  Forms,
-{$IFDEF FPC}
-
+{$IFDEF UsingCLX}
+  QForms, QGraphics, QControls, QStdCtrls, QExtCtrls,
 {$ELSE}
-  {$IFDEF MSWINDOWS}
-    Windows,
-    Controls,
-    Dialogs,
-    Graphics,
-    Buttons,
-    ExtCtrls,
-    StdCtrls,
-    ComCtrls,
-    Tabnotbk,
-  {$ENDIF}
+  Forms, Controls, Graphics, Buttons, ExtCtrls, StdCtrls,
+{$ENDIF}
 
+{$IFDEF FPC}
+  ComponentEditors,
+{$ELSE}
   {$IFDEF Version6}
     DesignIntf,
     DesignEditors,
   {$ELSE}
     DsgnIntf,
   {$ENDIF}
-
-  {$IFDEF UsingCLX}
-    QForms,
-    QGraphics,
-    QControls,
-    QStdCtrls,
-    QExtCtrls,
-  {$ENDIF}
 {$ENDIF}
 
   SysUtils,
   Classes;
-
 
 type
   TfrmSymmetricKey = class(TForm)
@@ -95,18 +77,21 @@ type
     procedure rgKeySizeChange(Sender: TObject);
     procedure edtPassphraseChange(Sender: TObject);
   end;
-type
-  TLbSymmetricKeyEditor = class(TDefaultEditor)
+
+  TLbSymmetricKeyEditor = class({$IFDEF FPC}TDefaultComponentEditor{$ELSE}TDefaultEditor{$ENDIF})
   public
-    procedure ExecuteVerb(Index : Integer);
-      override;
-    function GetVerb(Index : Integer) : string;
-      override;
-    function GetVerbCount : Integer;
-      override;
+    procedure ExecuteVerb(Index : Integer); override;
+    function GetVerb(Index : Integer) : string; override;
+    function GetVerbCount : Integer; override;
   end;
 
 implementation
+
+{$IFDEF FPC}
+  {$R *.lfm}
+{$ELSE}
+  {$R *.dfm}
+{$ENDIF}
 
 uses
   LbUtils, LbCipher;

@@ -36,7 +36,7 @@ unit LbCipher;
 interface
 
 uses
-{$IFDEF MSWINDOWS}
+{$IFNDEF FPC}
   Windows,
 {$ENDIF}
 {$IFDEF POSIX}
@@ -331,7 +331,8 @@ function RolX(I, C : DWord) : DWord; register;
 implementation
 
 uses
-  LbUtils, SysUtils, LbRandom;
+  SysUtils,
+  LbUtils, LbRandom;
 
 
 {first 2048 bits of Pi in hexadecimal, low to high, without the leading "3"}
