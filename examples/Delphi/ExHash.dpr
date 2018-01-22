@@ -1,12 +1,7 @@
 program ExHash;
 
 uses
-{$IFDEF WIN32}
   Forms,
-{$ENDIF}
-{$IFDEF LINUX}
-  QForms,
-{$ENDIF}
   ExHash1 in 'ExHash1.pas' {Form1};
 
 {$R *.res}
