@@ -1,0 +1,256 @@
+object Form1: TForm1
+  Left = 258
+  Top = 200
+  Caption = 'ExRSAKey - Public/private key manager'
+  ClientHeight = 367
+  ClientWidth = 584
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  PixelsPerInch = 96
+  object GroupBox4: TGroupBox
+    Left = 8
+    Top = 8
+    Width = 569
+    Height = 81
+    Caption = ' Public/private key pair '
+    TabOrder = 0
+    object Label5: TLabel
+      Left = 184
+      Top = 32
+      Width = 57
+      Height = 33
+      AutoSize = False
+      Caption = 'Prime test Iterations'
+      WordWrap = True
+    end
+    object Label8: TLabel
+      Left = 16
+      Top = 38
+      Width = 41
+      Height = 13
+      Caption = 'Key Size'
+    end
+    object btnCreateKeys: TButton
+      Left = 320
+      Top = 32
+      Width = 137
+      Height = 25
+      Caption = 'Generate new key pair '
+      TabOrder = 0
+      OnClick = btnCreateKeysClick
+    end
+    object btnFreeKeys: TButton
+      Left = 472
+      Top = 32
+      Width = 80
+      Height = 25
+      Caption = 'Free keys'
+      TabOrder = 1
+      OnClick = btnFreeKeysClick
+    end
+    object edtIterations: TEdit
+      Left = 240
+      Top = 34
+      Width = 33
+      Height = 21
+      TabOrder = 2
+      Text = '10'
+    end
+    object cbxKeySize: TComboBox
+      Left = 64
+      Top = 34
+      Width = 81
+      Height = 21
+      Style = csDropDownList
+      TabOrder = 3
+      Items.Strings = (
+        '128'
+        '256'
+        '512'
+        '768'
+        '1024')
+    end
+  end
+  object GroupBox1: TGroupBox
+    Left = 8
+    Top = 96
+    Width = 569
+    Height = 121
+    Caption = ' Public key '
+    TabOrder = 1
+    object Label1: TLabel
+      Left = 16
+      Top = 24
+      Width = 45
+      Height = 13
+      Caption = 'Exponent'
+    end
+    object Label2: TLabel
+      Left = 16
+      Top = 56
+      Width = 40
+      Height = 13
+      Caption = 'Modulus'
+    end
+    object Label6: TLabel
+      Left = 320
+      Top = 86
+      Width = 55
+      Height = 13
+      Caption = 'Passphrase'
+    end
+    object edtPublicE: TEdit
+      Left = 72
+      Top = 20
+      Width = 481
+      Height = 22
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Courier New'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
+    end
+    object edtPublicM: TEdit
+      Left = 72
+      Top = 52
+      Width = 481
+      Height = 22
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Courier New'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+    end
+    object btnLoadPublic: TButton
+      Left = 88
+      Top = 80
+      Width = 105
+      Height = 25
+      Caption = 'Load ASN.1 set'
+      TabOrder = 2
+      OnClick = btnLoadPublicClick
+    end
+    object btnSavePublic: TButton
+      Left = 200
+      Top = 80
+      Width = 105
+      Height = 25
+      Caption = 'Save ASN.1 set'
+      TabOrder = 3
+      OnClick = btnSavePublicClick
+    end
+    object edtPublicPhrase: TEdit
+      Left = 384
+      Top = 82
+      Width = 121
+      Height = 21
+      TabOrder = 4
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 8
+    Top = 224
+    Width = 569
+    Height = 121
+    Caption = ' Private key '
+    TabOrder = 2
+    object Label3: TLabel
+      Left = 16
+      Top = 24
+      Width = 45
+      Height = 13
+      Caption = 'Exponent'
+    end
+    object Label4: TLabel
+      Left = 16
+      Top = 56
+      Width = 40
+      Height = 13
+      Caption = 'Modulus'
+    end
+    object Label7: TLabel
+      Left = 320
+      Top = 86
+      Width = 55
+      Height = 13
+      Caption = 'Passphrase'
+    end
+    object edtPrivateE: TEdit
+      Left = 72
+      Top = 20
+      Width = 481
+      Height = 22
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Courier New'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
+    end
+    object edtPrivateM: TEdit
+      Left = 72
+      Top = 52
+      Width = 481
+      Height = 22
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Courier New'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+    end
+    object btnLoadPrivate: TButton
+      Left = 88
+      Top = 80
+      Width = 105
+      Height = 25
+      Caption = 'Load ASN.1 set'
+      TabOrder = 2
+      OnClick = btnLoadPrivateClick
+    end
+    object btnSavePrivate: TButton
+      Left = 200
+      Top = 80
+      Width = 105
+      Height = 25
+      Caption = 'Save ASN.1 set'
+      TabOrder = 3
+      OnClick = btnSavePrivateClick
+    end
+    object edtPrivatePhrase: TEdit
+      Left = 384
+      Top = 82
+      Width = 121
+      Height = 21
+      TabOrder = 4
+    end
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 347
+    Width = 584
+    Height = 20
+    Panels = <>
+    SimplePanel = True
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 24
+    Top = 176
+  end
+  object SaveDialog1: TSaveDialog
+    Left = 56
+    Top = 176
+  end
+end
