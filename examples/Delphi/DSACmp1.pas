@@ -131,7 +131,7 @@ begin
   StatusBar1.SimpleText := ' Signing message';
 
   try
-    LbDSA1.SignString(edtMsg.Text);
+    LbDSA1.SignString(StringToUTF8(edtMsg.Text));
     edtR.Text := LbDSA1.SignatureR.IntStr;
     edtS.Text := LbDSA1.SignatureS.IntStr;
     StatusBar1.SimpleText := '';
@@ -147,7 +147,7 @@ begin
   StatusBar1.SimpleText := ' Verifying signature';
 
   try
-    if LbDSA1.VerifyString(edtMsg.Text) then
+    if LbDSA1.VerifyString(StringToUTF8(edtMsg.Text)) then
       StatusBar1.SimpleText := ' Verification PASSED'
     else
       StatusBar1.SimpleText := ' Verification FAILED';

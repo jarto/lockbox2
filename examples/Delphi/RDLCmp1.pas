@@ -53,6 +53,8 @@ implementation
 
 {$R *.dfm}
 
+uses
+  LbUtils;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
@@ -62,15 +64,15 @@ end;
 
 procedure TForm1.btnEncryptClick(Sender: TObject);
 begin
-  LbRijndael1.GenerateKey(edtPassphrase.Text);
-  mmoCipherText.Text := LbRijndael1.EncryptString(mmoPlainText1.Text);
+  LbRijndael1.GenerateKey(StringToUTF8(edtPassphrase.Text));
+  mmoCipherText.Text := UTF8ToString(LbRijndael1.EncryptString(StringToUTF8(mmoPlainText1.Text)));
   mmoPlainText2.Clear;
 end;
 
 procedure TForm1.btnDecryptClick(Sender: TObject);
 begin
-  LbRijndael1.GenerateKey(edtPassphrase.Text);
-  mmoPlainText2.Text := LbRijndael1.DecryptString(mmoCipherText.Text);
+  LbRijndael1.GenerateKey(StringToUTF8(edtPassphrase.Text));
+  mmoPlainText2.Text := UTF8ToString(LbRijndael1.DecryptString(StringToUTF8(mmoCipherText.Text)));
 end;
 
 procedure TForm1.cbxCipherModeChange(Sender: TObject);

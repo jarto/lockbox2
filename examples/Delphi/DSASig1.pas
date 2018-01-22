@@ -139,7 +139,7 @@ begin
   Screen.Cursor := crHourglass;
   StatusBar1.SimpleText := ' Signing message';
   try
-    LbDSA1.SignString(mmoMsg.Lines.Text);
+    LbDSA1.SignString(StringToUTF8(mmoMsg.Lines.Text));
     edtR.Text := LbDSA1.SignatureR.IntStr;
     edtS.Text := LbDSA1.SignatureS.IntStr;
     StatusBar1.SimpleText := '';
@@ -153,7 +153,7 @@ begin
   Screen.Cursor := crHourglass;
   StatusBar1.SimpleText := ' Verifying signature';
   try
-    if LbDSA1.VerifyString(mmoMsg.Lines.Text) then
+    if LbDSA1.VerifyString(StringToUTF8(mmoMsg.Lines.Text)) then
       StatusBar1.SimpleText := ' Verification PASSED'
     else
       StatusBar1.SimpleText := ' Verification FAILED';

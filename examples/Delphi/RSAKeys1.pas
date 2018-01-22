@@ -77,6 +77,8 @@ implementation
 
 {$R *.dfm}
 
+uses
+  LbUtils;
 
 procedure TForm1.btnCreateKeysClick(Sender: TObject);
 begin
@@ -104,7 +106,7 @@ begin
     FS := TFileStream.Create(OpenDialog1.FileName, fmOpenRead);
     Screen.Cursor := crHourGlass;
     try
-      LbRSA1.PublicKey.PassPhrase := edtPublicPhrase.Text;
+      LbRSA1.PublicKey.PassPhrase := StringToUTF8(edtPublicPhrase.Text);
       LbRSA1.PublicKey.LoadFromStream(FS);
       edtPublicE.Text := LbRSA1.PublicKey.ExponentAsString;
       edtPublicM.Text := LbRSA1.PublicKey.ModulusAsString;
@@ -123,7 +125,7 @@ begin
     FS := TFileStream.Create(SaveDialog1.FileName, fmCreate);
     Screen.Cursor := crHourGlass;
     try
-      LbRSA1.PublicKey.Passphrase := edtPublicPhrase.Text;
+      LbRSA1.PublicKey.Passphrase := StringToUTF8(edtPublicPhrase.Text);
       LbRSA1.PublicKey.StoreToStream(FS);
     finally
       FS.Free;
@@ -140,7 +142,7 @@ begin
     FS := TFileStream.Create(OpenDialog1.FileName, fmOpenRead);
     Screen.Cursor := crHourGlass;
     try
-      LbRSA1.PrivateKey.Passphrase := edtPrivatePhrase.Text;
+      LbRSA1.PrivateKey.Passphrase := StringToUTF8(edtPrivatePhrase.Text);
       LbRSA1.PrivateKey.LoadFromStream(FS);
       edtPrivateE.Text := LbRSA1.PrivateKey.ExponentAsString;
       edtPrivateM.Text := LbRSA1.PrivateKey.ModulusAsString;
@@ -159,7 +161,7 @@ begin
     FS := TFileStream.Create(SaveDialog1.FileName, fmCreate);
     Screen.Cursor := crHourGlass;
     try
-      LbRSA1.PrivateKey.Passphrase := edtPrivatePhrase.Text;
+      LbRSA1.PrivateKey.Passphrase := StringToUTF8(edtPrivatePhrase.Text);
       LbRSA1.PrivateKey.StoreToStream(FS);
     finally
       FS.Free;

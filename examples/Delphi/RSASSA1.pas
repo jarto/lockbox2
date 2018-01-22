@@ -106,7 +106,7 @@ begin
   Screen.Cursor := crHourglass;
   StatusBar1.SimpleText := sSigning;
   try
-    LbRSASSA1.SignString(edtMsg.Text);
+    LbRSASSA1.SignString(StringToUTF8(edtMsg.Text));
     mmoSignature.Text := LbRSASSA1.Signature.IntStr;
   finally
     Screen.Cursor := crDefault;
@@ -117,7 +117,7 @@ end;
 procedure TForm1.btnVerifyClick(Sender: TObject);
   { verify signature against message }
 begin
-  if LbRSASSA1.VerifyString(edtMsg.Text) then
+  if LbRSASSA1.VerifyString(StringToUTF8(edtMsg.Text)) then
     StatusBar1.SimpleText := sPass
   else
     StatusBar1.SimpleText := sFail;

@@ -77,17 +77,20 @@ end;
 procedure TForm1.btnHashStringClick(Sender: TObject);
 var
   S : string;
+  StringToHash : UTF8String;
 begin
   S := '';
-  if InputQuery('HashCmp', 'Enter String', S) then begin
+  if InputQuery('HashCmp', 'Enter String', S) then
+  begin
+    StringToHash := StringToUTF8(S);
     case rgHashMethod.ItemIndex of
       0 : begin
-            LbMD51.HashString(S);
+            LbMD51.HashString(StringToHash);
             LbMD51.GetDigest(MD5Digest);
             edtHash.Text := BufferToHex(MD5Digest, SizeOf(MD5Digest));
           end;
       1 : begin
-            LbSHA11.HashString(S);
+            LbSHA11.HashString(StringToHash);
             LbSHA11.GetDigest(SHA1Digest);
             edtHash.Text := BufferToHex(SHA1Digest, SizeOf(SHA1Digest));
           end;

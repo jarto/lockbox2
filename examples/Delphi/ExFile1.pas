@@ -55,7 +55,7 @@ implementation
 {$R *.dfm}
 
 uses
-  LbCipher, LbProc;
+  LbCipher, LbProc, LbUtils;
 
 type
   TEncryption = (eBf, eBfCbc, eDes, eDesCbc, e3Des, e3DesCbc, eRdl, eRdlCbc);
@@ -105,11 +105,14 @@ begin
 end;
 
 procedure TForm1.RefreshKeys;
+var
+  Passphrase : UTF8String;
 begin
-  GenerateLMDKey(Key64, SizeOf(Key64),   edtPassphrase.Text);
-  GenerateLMDKey(Key128, SizeOf(Key128), edtPassphrase.Text);
-  GenerateLMDKey(Key192, SizeOf(Key192), edtPassphrase.Text);
-  GenerateLMDKey(Key256, SizeOf(Key256), edtPassphrase.Text);
+  Passphrase := StringToUTF8(edtPassphrase.Text);
+  GenerateLMDKey(Key64, SizeOf(Key64), Passphrase);
+  GenerateLMDKey(Key128, SizeOf(Key128), Passphrase);
+  GenerateLMDKey(Key192, SizeOf(Key192), Passphrase);
+  GenerateLMDKey(Key256, SizeOf(Key256), Passphrase);
 end;
 
 end.

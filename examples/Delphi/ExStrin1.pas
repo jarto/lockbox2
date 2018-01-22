@@ -51,7 +51,7 @@ implementation
 {$R *.dfm}
 
 uses
-  LbCipher, LbString;
+  LbCipher, LbString, LbUtils;
 
 type
   TEncryption = (eBf, eBfCbc, eDes, eDesCbc, e3Des, e3DesCbc, eRdl, eRdlCbc);
@@ -62,8 +62,6 @@ var
   Key128           : TKey128;
   Key192           : TKey192;
   Key256           : TKey256;
-  PlainText        : string;
-  CipherText       : string;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
@@ -71,9 +69,11 @@ begin
 end;
 
 procedure TForm1.btnEncryptClick(Sender: TObject);
+var
+  PlainText, CipherText : UTF8String;
 begin
   RefreshKeys;
-  PlainText := mmoPlainText1.Text;
+  PlainText := StringToUTF8(mmoPlainText1.Text);
   case TEncryption(cbxEncryption.ItemIndex) of
     eBf      : CipherText := BFEncryptStringEx(PlainText, Key128, True);
     eBfCbc   : CipherText := BFEncryptStringCBCEx(PlainText, Key128, True);
@@ -84,14 +84,16 @@ begin
     eRdl     : CipherText := RDLEncryptStringEx(PlainText, Key128, 16, True);
     eRdlCbc  : CipherText := RDLEncryptStringCBCEx(PlainText, Key128, 16, True);
   end;
-  mmoCipherText.Text := CipherText;
+  mmoCipherText.Text := UTF8ToString(CipherText);
   mmoPlainText2.Clear;
 end;
 
 procedure TForm1.btnDecryptClick(Sender: TObject);
+var
+  PlainText, CipherText : UTF8String;
 begin
   RefreshKeys;
-  CipherText := mmoCipherText.Text;
+  CipherText := StringToUTF8(mmoCipherText.Text);
   case TEncryption(cbxEncryption.ItemIndex) of
     eBf      : PlainText := BFEncryptStringEx(CipherText, Key128, False);
     eBfCbc   : PlainText := BFEncryptStringCBCEx(CipherText, Key128, False);
@@ -102,15 +104,18 @@ begin
     eRdl     : PlainText := RDLEncryptStringEx(CipherText, Key128, 16, False);
     eRdlCbc  : PlainText := RDLEncryptStringCBCEx(CipherText, Key128, 16, False);
   end;
-  mmoPlainText2.Text := PlainText;
+  mmoPlainText2.Text := UTF8ToString(PlainText);
 end;
 
 procedure TForm1.RefreshKeys;
+var
+  Passphrase : UTF8String;
 begin
-  GenerateLMDKey(Key64, SizeOf(Key64), edtPassphrase.Text);
-  GenerateLMDKey(Key128, SizeOf(Key128), edtPassphrase.Text);
-  GenerateLMDKey(Key192, SizeOf(Key192), edtPassphrase.Text);
-  GenerateLMDKey(Key256, SizeOf(Key256), edtPassphrase.Text);
+  Passphrase := StringToUTF8(edtPassphrase.Text);
+  GenerateLMDKey(Key64, SizeOf(Key64), Passphrase);
+  GenerateLMDKey(Key128, SizeOf(Key128), Passphrase);
+  GenerateLMDKey(Key192, SizeOf(Key192), Passphrase);
+  GenerateLMDKey(Key256, SizeOf(Key256), Passphrase);
 end;
 
 

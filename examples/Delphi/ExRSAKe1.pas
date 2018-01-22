@@ -77,6 +77,9 @@ implementation
 
 {$R *.dfm}
 
+uses
+  LbUtils;
+
 var
   PublicKey  : TLbRSAKey;
   PrivateKey : TLbRSAKey;
@@ -141,7 +144,7 @@ begin
     Screen.Cursor := crHourGlass;
     try
       CreateKey(PublicKey);
-      PublicKey.PassPhrase := edtPublicPhrase.Text;
+      PublicKey.PassPhrase := StringToUTF8(edtPublicPhrase.Text);
       PublicKey.LoadFromStream(FS);
       edtPublicE.Text := PublicKey.ExponentAsString;
       edtPublicM.Text := PublicKey.ModulusAsString;
@@ -161,7 +164,7 @@ begin
       FS := TFileStream.Create(SaveDialog1.FileName, fmCreate);
       Screen.Cursor := crHourGlass;
       try
-        PublicKey.Passphrase := edtPublicPhrase.Text;
+        PublicKey.Passphrase := StringToUTF8(edtPublicPhrase.Text);
         PublicKey.StoreToStream(FS);
       finally
         FS.Free;
@@ -179,7 +182,7 @@ begin
     Screen.Cursor := crHourGlass;
     try
       CreateKey(PrivateKey);
-      PrivateKey.Passphrase := edtPrivatePhrase.Text;
+      PrivateKey.Passphrase := StringToUTF8(edtPrivatePhrase.Text);
       PrivateKey.LoadFromStream(FS);
       edtPrivateE.Text := PrivateKey.ExponentAsString;
       edtPrivateM.Text := PrivateKey.ModulusAsString;
@@ -199,7 +202,7 @@ begin
       FS := TFileStream.Create(SaveDialog1.FileName, fmCreate);
       Screen.Cursor := crHourGlass;
       try
-        PrivateKey.Passphrase := edtPrivatePhrase.Text;
+        PrivateKey.Passphrase := StringToUTF8(edtPrivatePhrase.Text);
         PrivateKey.StoreToStream(FS);
       finally
         FS.Free;

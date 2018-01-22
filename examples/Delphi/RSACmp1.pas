@@ -92,7 +92,7 @@ begin
   Screen.Cursor := crHourGlass;
   StatusBar1.SimpleText := sEncrypt;
   try
-    mmoCipherText.Text := LbRSA1.EncryptString(mmoPlainText1.Text);
+    mmoCipherText.Text := UTF8ToString(LbRSA1.EncryptString(StringToUTF8(mmoPlainText1.Text)));
   finally
     Screen.Cursor := crDefault;
     StatusBar1.SimpleText := '';
@@ -106,7 +106,7 @@ begin
   Screen.Cursor := crHourGlass;
   StatusBar1.SimpleText := sDecrypt;
   try
-    mmoPlainText2.Text := LbRSA1.DecryptString(mmoCipherText.Text);
+    mmoPlainText2.Text := UTF8ToString(LbRSA1.DecryptString(StringToUTF8(mmoCipherText.Text)));
   finally
     Screen.Cursor := crDefault;
     StatusBar1.SimpleText := '';
