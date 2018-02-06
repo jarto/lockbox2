@@ -57,6 +57,9 @@ type
 { TLbAsymmetricKey }
 type
   TLbAsymmetricKey = class
+  private
+    function GetBase64EncodedText: RawByteString;
+    procedure SetBase64EncodedText(const Value: RawByteString);
     protected {private}
       FKeySize  : TLbAsymKeySize;
       FPassphrase : RawByteString;
@@ -85,6 +88,7 @@ type
 {!!.06}
 
     public {properties}
+      property Base64EncodedText : RawByteString read GetBase64EncodedText write SetBase64EncodedText;
       property KeySize : TLbAsymKeySize
         read FKeySize write SetKeySize;
       property Passphrase : RawByteString
@@ -145,7 +149,7 @@ type
 implementation
 
 uses
-  LbCipher, LbProc;
+  LbCipher, LbProc, LbString;
 
 
 { == TLbAsymmetricKey ====================================================== }
@@ -419,6 +423,51 @@ begin
     StoreToStream(FS);
   finally
     FS.Free;
+  end;
+end;
+{ -------------------------------------------------------------------------- }
+procedure TLbAsymmetricKey.SetBase64EncodedText(const Value: RawByteString);
+var
+  EncodedStream, DecodedStream : TStream;
+begin
+  EncodedStream := nil;
+  DecodedStream := nil;
+  try
+    EncodedStream := TMemoryStream.Create;
+    EncodedStream.Write(Value[1],Length(Value));
+    EncodedStream.Position := 0;
+
+    DecodedStream := TMemoryStream.Create;
+    LbDecodeBase64(EncodedStream, DecodedStream);
+
+    DecodedStream.Position := 0;
+    LoadFromStream(DecodedStream);
+  finally
+    EncodedStream.Free;
+    DecodedStream.Free;
+  end;
+end;
+{ -------------------------------------------------------------------------- }
+function TLbAsymmetricKey.GetBase64EncodedText: RawByteString;
+var
+  DecodedStream, EncodedStream : TStream;
+begin
+  DecodedStream := nil;
+  EncodedStream := nil;
+  try
+    DecodedStream := TMemoryStream.Create;
+    StoreToStream(DecodedStream);
+    DecodedStream.Position := 0;
+
+    EncodedStream := TMemoryStream.Create;
+    LbEncodeBase64(DecodedStream, EncodedStream);
+
+    EncodedStream.Position := 0;
+    SetLength(Result, EncodedStream.Size);
+    EncodedStream.Read(Result[1], EncodedStream.Size);
+  finally
+    DecodedStream.Free;
+    EncodedStream.Free;
   end;
 end;
 { -------------------------------------------------------------------------- }
