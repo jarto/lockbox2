@@ -37,9 +37,8 @@
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
 			<DCCReference Include="RSAKeys1.pas">
-				<Form>Form1</Form>
+				<Form>lbRSAKeysForm</Form>
 			</DCCReference>
-			<DCCReference Include="..\..\LbUtils.pas"/>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

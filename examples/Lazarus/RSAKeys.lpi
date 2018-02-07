@@ -14,6 +14,7 @@
       <Title Value="RSAKeys"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
@@ -45,7 +46,9 @@
       <Unit1>
         <Filename Value="RSAKeys1.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="lbRSAKeysForm"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit1>
       <Unit2>
         <Filename Value="..\..\source\backup\LbUtils.pas"/>
@@ -73,12 +76,12 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <SearchPaths>
-      <IncludeFiles Value="..\..\source;..\..\source\backup"/>
+      <IncludeFiles Value="..\..\source;..\..\source\backup;$(ProjOutDir)"/>
       <OtherUnitFiles Value="..\..\source;..\..\source\backup"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
-        <SyntaxMode Value="delphi"/>
+        <SyntaxMode Value="Delphi"/>
       </SyntaxOptions>
     </Parsing>
     <Linking>
