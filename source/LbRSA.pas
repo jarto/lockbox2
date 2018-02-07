@@ -883,7 +883,7 @@ begin
   if (Tag <> ASN1_TYPE_SEQUENCE) then
     raise Exception.Create(sRSAKeyBadKey);
 
-  ParseASN1(pInput, Max, FModulus);
+  KeySize := KeySizeFromBytes(ParseASN1(pInput, Max, FModulus));
   ParseASN1(pInput, Max, FExponent);
 
   Result := (Max = 0);

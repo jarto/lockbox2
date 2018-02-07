@@ -687,7 +687,7 @@ begin
   if (Tag <> ASN1_TYPE_SEQUENCE) then
     raise Exception.Create(sDSAKeyBadKey);
 
-  ParseASN1(pInput, Max, FP);
+  KeySize := KeySizeFromBytes(ParseASN1(pInput, Max, FP));
   ParseASN1(pInput, Max, FQ);
   ParseASN1(pInput, Max, FG);
   ParseASN1(pInput, Max, FX);
@@ -785,7 +785,7 @@ begin
   if (Tag <> ASN1_TYPE_SEQUENCE) then
     raise Exception.Create(sDSAKeyBadKey);
 
-  ParseASN1(pInput, Max, FP);
+  KeySize := KeySizeFromBytes(ParseASN1(pInput, Max, FP));
   ParseASN1(pInput, Max, FQ);
   ParseASN1(pInput, Max, FG);
   ParseASN1(pInput, Max, FY);

@@ -70,7 +70,7 @@ type
       function GetASN1StructLen( var input : pByte; var len : Integer ) : Integer;
       function GetASN1StructNum ( var input : pByte; var len : Integer ) : Integer;
       procedure CreateASN1(var Buf; var BufLen : Integer; Tag : Byte);
-      procedure ParseASN1(var input : pByte; var length : Integer; biValue : TLbBigInt);
+      function ParseASN1(var input : pByte; var length : Integer; biValue : TLbBigInt) : Integer;
       function EncodeASN1(biValue : TLbBigInt; var pBuf : PByteArray; var MaxLen : Integer) : Integer;
       function  CreateASNKey(Input : pByteArray; Length : Integer) : Integer; virtual; abstract;
       function ParseASNKey(Input : pByte; Length : Integer) : boolean; virtual; abstract;
@@ -144,12 +144,32 @@ type
         read FOnProgress write FOnProgress;
     end;
 
-
+    function KeySizeFromBytes(AByteCount : Integer) : TLbAsymKeySize;
 
 implementation
 
 uses
   LbCipher, LbProc, LbString;
+
+function KeySizeFromBytes(AByteCount : Integer) : TLbAsymKeySize;
+var
+  Index : TLbAsymKeySize;
+  Found : Boolean;
+begin
+  Result := low(TLbAsymKeySize);
+  Index := low(TLbAsymKeySize);
+  Found := False;
+  while (Index < High(TLbAsymKeySize)) and not Found do
+  begin
+    if (cLbAsymKeyBytes[Index] = AByteCount)  then
+    begin
+      Result := Index;
+      Found := True;
+    end;
+
+    inc(Index);
+  end;
+end;
 
 
 { == TLbAsymmetricKey ====================================================== }
@@ -430,6 +450,7 @@ procedure TLbAsymmetricKey.SetBase64EncodedText(const Value: RawByteString);
 var
   EncodedStream, DecodedStream : TStream;
 begin
+  assert(Length(Value) > 0, sASNKeyBadKey);
   EncodedStream := nil;
   DecodedStream := nil;
   try
@@ -472,8 +493,8 @@ begin
 end;
 { -------------------------------------------------------------------------- }
 {!!.06}
-procedure TLbAsymmetricKey.ParseASN1(var input : pByte; var length : Integer;
-                                     biValue : TLbBigInt);
+function TLbAsymmetricKey.ParseASN1(var input : pByte; var length : Integer;
+                                     biValue : TLbBigInt) : Integer;
 var
   tag : Integer;
   len : Integer;
@@ -492,6 +513,7 @@ begin
     biValue.CopyBuffer( input^, len );
     inc( pByte( input ), len );
     length := length - len;
+    Result := len;
   end else
     raise Exception.Create(sASNKeyBadKey);
 end;
