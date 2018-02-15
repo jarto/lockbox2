@@ -100,8 +100,7 @@ begin
     Screen.Cursor := crHourGlass;
     try
       FActiveKey.Clear;
-      FActiveKey.Passphrase := StringToUTF8(edtPassPhrase.Text);
-      FActiveKey.LoadFromStream(FS);
+      FActiveKey.LoadFromStream(FS, StringToUTF8(edtPassPhrase.Text));
       SetKeySize(FActiveKey.KeySize);
       UpdateControls;
     finally
@@ -120,8 +119,7 @@ begin
     FS := TFileStream.Create(dlgSave.FileName, fmCreate);
     Screen.Cursor := crHourGlass;
     try
-      FActiveKey.Passphrase := StringToUTF8(edtPassPhrase.Text);
-      FActiveKey.StoreToStream(FS);
+      FActiveKey.StoreToStream(FS, StringToUTF8(edtPassPhrase.Text));
     finally
       FS.Free;
       Screen.Cursor := crDefault;

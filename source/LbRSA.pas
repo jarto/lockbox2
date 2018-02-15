@@ -138,8 +138,6 @@ type
         read FExponent;
       property ExponentAsString : string
         read GetExponentAsString write SetExponentAsString;
-      property Passphrase : RawByteString
-        read FPassphrase write FPassphrase;
   end;
 
 

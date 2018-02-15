@@ -133,8 +133,7 @@ begin
     Screen.Cursor := crHourGlass;
     try
       CreateKey(PublicKey);
-      PublicKey.PassPhrase := StringToUTF8(edtPublicPhrase.Text);
-      PublicKey.LoadFromStream(FS);
+      PublicKey.LoadFromStream(FS, StringToUTF8(edtPublicPhrase.Text));
       edtPublicE.Text := PublicKey.ExponentAsString;
       edtPublicM.Text := PublicKey.ModulusAsString;
     finally
@@ -153,8 +152,7 @@ begin
       FS := TFileStream.Create(SaveDialog1.FileName, fmCreate);
       Screen.Cursor := crHourGlass;
       try
-        PublicKey.Passphrase := StringToUTF8(edtPublicPhrase.Text);
-        PublicKey.StoreToStream(FS);
+        PublicKey.StoreToStream(FS, StringToUTF8(edtPublicPhrase.Text));
       finally
         FS.Free;
         Screen.Cursor := crDefault;
@@ -171,8 +169,7 @@ begin
     Screen.Cursor := crHourGlass;
     try
       CreateKey(PrivateKey);
-      PrivateKey.Passphrase := StringToUTF8(edtPrivatePhrase.Text);
-      PrivateKey.LoadFromStream(FS);
+      PrivateKey.LoadFromStream(FS, StringToUTF8(edtPrivatePhrase.Text));
       edtPrivateE.Text := PrivateKey.ExponentAsString;
       edtPrivateM.Text := PrivateKey.ModulusAsString;
     finally
@@ -191,8 +188,7 @@ begin
       FS := TFileStream.Create(SaveDialog1.FileName, fmCreate);
       Screen.Cursor := crHourGlass;
       try
-        PrivateKey.Passphrase := StringToUTF8(edtPrivatePhrase.Text);
-        PrivateKey.StoreToStream(FS);
+        PrivateKey.StoreToStream(FS, StringToUTF8(edtPrivatePhrase.Text));
       finally
         FS.Free;
         Screen.Cursor := crDefault;

@@ -58,11 +58,10 @@ type
 type
   TLbAsymmetricKey = class
   private
-    function GetBase64EncodedText: RawByteString;
+    function GetBase64EncodedText : RawByteString;
     procedure SetBase64EncodedText(const Value: RawByteString);
     protected {private}
       FKeySize  : TLbAsymKeySize;
-      FPassphrase : RawByteString;
       procedure SetKeySize(Value : TLbAsymKeySize); virtual;
 {!!.06}
       procedure MovePtr(var Ptr : PByte; var Max : Integer );
@@ -78,21 +77,17 @@ type
 
     public {methods}
       constructor Create(aKeySize : TLbAsymKeySize); virtual;
-      destructor Destroy; override;
       procedure Assign(aKey : TLbAsymmetricKey); virtual;
 {!!.06}
-      procedure LoadFromStream(aStream : TStream); virtual; { as ASN.1 set }
-      procedure StoreToStream(aStream : TStream); virtual; { as ASN.1 set }
-      procedure LoadFromFile(aFileName : string); virtual; { as ASN.1 set }
-      procedure StoreToFile(aFileName : string); virtual; { as ASN.1 set }
+      procedure LoadFromStream(aStream : TStream; const aPassPhrase : RawByteString = ''); virtual; { as ASN.1 set }
+      procedure StoreToStream(aStream : TStream; const aPassPhrase : RawByteString = ''); virtual; { as ASN.1 set }
+      procedure LoadFromFile(aFileName : string; const aPassPhrase : RawByteString = ''); { as ASN.1 set }
+      procedure StoreToFile(aFileName : string; const aPassPhrase : RawByteString = ''); { as ASN.1 set }
 {!!.06}
 
     public {properties}
       property Base64EncodedText : RawByteString read GetBase64EncodedText write SetBase64EncodedText;
-      property KeySize : TLbAsymKeySize
-        read FKeySize write SetKeySize;
-      property Passphrase : RawByteString
-        read FPassphrase write FPassphrase;
+      property KeySize : TLbAsymKeySize read FKeySize write SetKeySize;
   end;
 
 
@@ -176,11 +171,6 @@ end;
 constructor TLbAsymmetricKey.Create(aKeySize : TLbAsymKeySize);
 begin
   FKeySize := aKeySize;
-end;
-{ -------------------------------------------------------------------------- }
-destructor TLbAsymmetricKey.Destroy;
-begin
-  inherited Destroy;
 end;
 { -------------------------------------------------------------------------- }
 procedure TLbAsymmetricKey.Assign(aKey : TLbAsymmetricKey);
@@ -354,7 +344,7 @@ begin
 end;
 { -------------------------------------------------------------------------- }
 {!!.06}
-procedure TLbAsymmetricKey.LoadFromStream(aStream : TStream);
+procedure TLbAsymmetricKey.LoadFromStream(aStream : TStream; const aPassPhrase : RawByteString);
   { load key from ASN.1 format stream (decrypt if necessary) }
 var
   KeyBuf : array[0..4096] of Byte;
@@ -366,10 +356,11 @@ begin
   aStream.Position := 0;
 
   { decrypt stream first if passphrase in not empty }
-  if (FPassphrase <> '') then begin
+  if (aPassPhrase <> '') then
+  begin
     MemStream := TMemoryStream.Create;
     try
-      StringHashMD5(TMD5Digest(BFKey), FPassphrase);
+      StringHashMD5(TMD5Digest(BFKey), aPassPhrase);
       BFEncryptStream(aStream, MemStream, BFKey, False);
       Len := MemStream.Size;
       if (Len > SizeOf(KeyBuf)) then
@@ -379,7 +370,9 @@ begin
     finally
       MemStream.Free;
     end;
-  end else begin
+  end
+  else
+  begin
     Len := aStream.Size;
     if (Len > SizeOf(KeyBuf)) then
       raise Exception.Create(sASNKeyBadKey);
@@ -390,7 +383,7 @@ begin
 end;
 { -------------------------------------------------------------------------- }
 {!!.06}
-procedure TLbAsymmetricKey.StoreToStream(aStream : TStream);
+procedure TLbAsymmetricKey.StoreToStream(aStream : TStream; const aPassPhrase : RawByteString);
   { save key to ASN.1 format stream (encrypt if necessary) }
 var
   KeyBuf : array[0..4096] of Byte;
@@ -402,24 +395,26 @@ begin
   Len := CreateASNKey(@KeyBuf, SizeOf(KeyBuf));
 
   { encrypt buffer first if passphrase in not empty }
-  if (FPassphrase <> '') then begin
+  if (aPassPhrase <> '') then
+  begin
     MemStream := TMemoryStream.Create;
     try
       MemStream.Write(KeyBuf, Len);
       MemStream.Position := 0;
-      StringHashMD5(TMD5Digest(BFKey), FPassphrase);
+      StringHashMD5(TMD5Digest(BFKey), aPassPhrase);
       BFEncryptStream(MemStream, aStream, BFKey, True);
     finally
       MemStream.Free;
     end;
-  end else
+  end
+  else
     aStream.Write(KeyBuf, Len);
 
   FillChar(KeyBuf, SizeOf(KeyBuf), #0);
 end;
 { -------------------------------------------------------------------------- }
 {!!.06}
-procedure TLbAsymmetricKey.LoadFromFile(aFileName : string);
+procedure TLbAsymmetricKey.LoadFromFile(aFileName : string; const aPassPhrase : RawByteString);
   { load key from ASN.1 format file (decrypt if necessary) }
 var
   FS : TFileStream;
@@ -433,7 +428,7 @@ begin
 end;
 { -------------------------------------------------------------------------- }
 {!!.06}
-procedure TLbAsymmetricKey.StoreToFile(aFileName : string);
+procedure TLbAsymmetricKey.StoreToFile(aFileName : string; const aPassPhrase : RawByteString);
   { save key to ASN.1 format file (encrypt if necessary) }
 var
   FS : TFileStream;
