@@ -88,6 +88,8 @@ implementation
 
 {$R *.dfm}
 
+uses
+  LbUtils;
 
 procedure TfrmDSAKeys.UpdatePrivateKeyFields;
 begin
@@ -123,35 +125,35 @@ end;
 
 procedure TfrmDSAKeys.btnLoadPublicClick(Sender: TObject);
 begin
-  if dlgOpenASN.Execute then begin
-    LbDSA1.PublicKey.Passphrase := edtPublicPhrase.Text;
-    LbDSA1.PublicKey.LoadFromFile(dlgOpenASN.FileName);
+  if dlgOpenASN.Execute then
+  begin
+    LbDSA1.PublicKey.LoadFromFile(dlgOpenASN.FileName,StringToUTF8(edtPublicPhrase.Text));
     UpdatePublicKeyFields;
   end;
 end;
 
 procedure TfrmDSAKeys.btnSavePublicClick(Sender: TObject);
 begin
-  if dlgSaveASN.Execute then begin
-    LbDSA1.PublicKey.Passphrase := edtPublicPhrase.Text;
-    LbDSA1.PublicKey.StoreToFile(dlgSaveASN.FileName);
+  if dlgSaveASN.Execute then
+  begin
+    LbDSA1.PublicKey.StoreToFile(dlgSaveASN.FileName,StringToUTF8(edtPublicPhrase.Text));
   end;
 end;
 
 procedure TfrmDSAKeys.btnLoadPrivateClick(Sender: TObject);
 begin
-  if dlgOpenASN.Execute then begin
-    LbDSA1.PrivateKey.Passphrase := edtPrivatePhrase.Text;
-    LbDSA1.PrivateKey.LoadFromFile(dlgOpenASN.FileName);
+  if dlgOpenASN.Execute then
+  begin
+    LbDSA1.PrivateKey.LoadFromFile(dlgOpenASN.FileName,StringToUTF8(edtPrivatePhrase.Text));
     UpdatePrivateKeyFields;
   end;
 end;
 
 procedure TfrmDSAKeys.btnSavePrivateClick(Sender: TObject);
 begin
-  if dlgSaveASN.Execute then begin
-    LbDSA1.PrivateKey.Passphrase := edtPrivatePhrase.Text;
-    LbDSA1.PrivateKey.StoreToFile(dlgSaveASN.FileName);
+  if dlgSaveASN.Execute then
+  begin
+    LbDSA1.PrivateKey.StoreToFile(dlgSaveASN.FileName,StringToUTF8(edtPrivatePhrase.Text));
   end;
 end;
 

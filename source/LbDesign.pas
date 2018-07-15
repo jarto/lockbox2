@@ -38,21 +38,22 @@ unit LbDesign;
 interface
 
 uses
-  Windows,
-  Messages,
-  Dialogs,
-  ShellAPI,
-{$IFDEF Version6}
-  DesignIntf,
-  DesignEditors,
+{$IFDEF UsingCLX}
+  QForms, QGraphics, QControls, QStdCtrls, QExtCtrls,
 {$ELSE}
-  DsgnIntf,
+  Forms, Controls, Graphics, Buttons, ExtCtrls, StdCtrls,
 {$ENDIF}
-  StdCtrls,
-  Graphics,
-  ExtCtrls,
-  Controls,
-  Forms,
+
+{$IFDEF FPC}
+  ComponentEditors, PropEdits,
+{$ELSE}
+  {$IFDEF Version6}
+    DesignIntf,
+    DesignEditors,
+  {$ELSE}
+    DsgnIntf,
+  {$ENDIF}
+{$ENDIF}
   SysUtils,
   Classes;
 
@@ -92,7 +93,6 @@ type
     private
   end;
 
-type
   TLbVersionProperty = class(TStringProperty)
   public
     function GetAttributes : TPropertyAttributes; override;
@@ -107,11 +107,24 @@ var
 
 implementation
 
-{$R *.dfm}
+{$IFDEF FPC}
+  {$R *.lfm}
+  {$R *_laz.res}
+{$ELSE}
+  {$R *.dfm}
+{$ENDIF}
 
 uses
-  LbClass, LbAsym, LbRSA, LbDSA, LbKeyEd1, LbKeyEd2,
-  LbConst;
+{$IFDEF FPC}
+  LCLIntf,
+{$ELSE}
+  ShellAPI,
+  {$IFDEF MSWINDOWS}
+    Windows,
+  {$ENDIF}
+{$ENDIF}
+  Dialogs,
+  LbKeyEd1, LbKeyEd2, LbClass, LbRSA, LbDSA,  LbConst;
 
 
 
@@ -169,18 +182,40 @@ begin
   Left := (Screen.Width - Width) div 2;
   lblVersion.Caption := 'LockBox ' + sLbVersion;
 end;
+
+//function OpenWebPage
 { -------------------------------------------------------------------------- }
 procedure TLbAboutForm.lblWebClick(Sender: TObject);
+{$IFNDEF FPC}
+var
+  Link : WideString;
+{$ENDIF}
 begin
-  if ShellExecute(Handle, nil, 'http://sourceforge.net/projects/tplockbox', '', '', SW_SHOWNORMAL) <= 32 then
+{$IFDEF FPC}
+  if not OpenURL(lblWeb.Caption) then
+{$ELSE}
+  Link := lblWeb.Caption;
+  if ShellExecute(Handle, nil, PWideChar(Link), '', '', SW_SHOWNORMAL) <= 32 then
+{$ENDIF}
     ShowMessage(SNoStart);
+
   lblWeb.Font.Color := clBlue;
 end;
 { -------------------------------------------------------------------------- }
 procedure TLbAboutForm.lblNewsClick(Sender: TObject);
+{$IFNDEF FPC}
+var
+  Link : WideString;
+{$ENDIF}
 begin
-  if ShellExecute(Handle, nil, 'http://sourceforge.net/forum/forum.php?forum_id=241889', '', '', SW_SHOWNORMAL) <= 32 then
+{$IFDEF FPC}
+  if not OpenURL(lblNews.Caption) then
+{$ELSE}
+  Link := lblNews.Caption;
+  if ShellExecute(Handle, nil, PWideChar(Link), '', '', SW_SHOWNORMAL) <= 32 then
+{$ENDIF}
     ShowMessage(SNoStart);
+
   lblNews.Font.Color := clBlue;
 end;
 { -------------------------------------------------------------------------- }

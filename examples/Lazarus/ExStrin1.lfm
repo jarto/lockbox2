@@ -1,0 +1,133 @@
+object Form1: TForm1
+  Left = 271
+  Height = 345
+  Top = 109
+  Width = 608
+  Caption = 'ExString - Encrypt/Decrypt string'
+  ClientHeight = 345
+  ClientWidth = 608
+  Color = clBtnFace
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '1.6.4.0'
+  object Label4: TLabel
+    Left = 19
+    Height = 13
+    Top = 28
+    Width = 89
+    Caption = 'Encryption Method'
+    ParentColor = False
+  end
+  object Label5: TLabel
+    Left = 16
+    Height = 13
+    Top = 64
+    Width = 44
+    Caption = 'PlainText'
+    ParentColor = False
+  end
+  object Label7: TLabel
+    Left = 416
+    Height = 13
+    Top = 64
+    Width = 44
+    Caption = 'PlainText'
+    ParentColor = False
+  end
+  object Label6: TLabel
+    Left = 216
+    Height = 13
+    Top = 64
+    Width = 142
+    Caption = 'CipherText (Base64 Encoded)'
+    ParentColor = False
+  end
+  object Label1: TLabel
+    Left = 304
+    Height = 13
+    Top = 28
+    Width = 55
+    Caption = 'Passphrase'
+    ParentColor = False
+  end
+  object btnEncrypt: TButton
+    Left = 64
+    Height = 25
+    Top = 320
+    Width = 75
+    Caption = 'Encrypt'
+    OnClick = btnEncryptClick
+    TabOrder = 0
+  end
+  object btnDecrypt: TButton
+    Left = 272
+    Height = 25
+    Top = 320
+    Width = 75
+    Caption = 'Decrypt'
+    OnClick = btnDecryptClick
+    TabOrder = 1
+  end
+  object cbxEncryption: TComboBox
+    Left = 115
+    Height = 21
+    Top = 24
+    Width = 145
+    ItemHeight = 13
+    Items.Strings = (
+      'Blowfish'
+      'Blowfish (CBC)'
+      'DES'
+      'DES (CBC)'
+      'Triple DES'
+      'Triple DES (CBC)'
+      'Rijndael'
+      'Rijndael (CBC)'
+    )
+    Style = csDropDownList
+    TabOrder = 2
+  end
+  object mmoPlainText1: TMemo
+    Left = 16
+    Height = 225
+    Top = 80
+    Width = 185
+    Lines.Strings = (
+      '12345678901234567890123456789'
+      '01234567890123456789012345678'
+      '90123456789012345678901234567'
+      '89012345678901234567890123456'
+      '78901234567890123456789012345'
+      '678901234567890'
+    )
+    TabOrder = 3
+  end
+  object mmoCipherText: TMemo
+    Left = 216
+    Height = 225
+    Top = 80
+    Width = 185
+    ReadOnly = True
+    TabOrder = 4
+  end
+  object mmoPlainText2: TMemo
+    Left = 416
+    Height = 225
+    Top = 80
+    Width = 185
+    ReadOnly = True
+    TabOrder = 5
+  end
+  object edtPassphrase: TEdit
+    Left = 368
+    Height = 21
+    Top = 24
+    Width = 225
+    EchoMode = emPassword
+    PasswordChar = '*'
+    TabOrder = 6
+  end
+end

@@ -2,8 +2,7 @@ program DSAKeys;
 
 uses
   Forms,
-  DSAKeys1 in 'DSAKeys1.pas' {frmDSAKeys},
-  LbUtils in '..\..\LbUtils.pas';
+  DSAKeys1 in 'DSAKeys1.pas' {frmDSAKeys};
 
 {$R *.res}
 

@@ -1,0 +1,305 @@
+object Form1: TForm1
+  Left = 320
+  Height = 564
+  Top = 118
+  Width = 502
+  Caption = 'DSACmp - DSA Digital Signature Example'
+  ClientHeight = 564
+  ClientWidth = 502
+  Color = clBtnFace
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  LCLVersion = '1.6.4.0'
+  object Label1: TLabel
+    Left = 24
+    Height = 13
+    Top = 48
+    Width = 8
+    Caption = 'Q'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 24
+    Height = 13
+    Top = 88
+    Width = 7
+    Caption = 'P'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 24
+    Height = 13
+    Top = 152
+    Width = 8
+    Caption = 'G'
+    ParentColor = False
+  end
+  object Label4: TLabel
+    Left = 24
+    Height = 13
+    Top = 280
+    Width = 7
+    Caption = 'X'
+    ParentColor = False
+  end
+  object Label5: TLabel
+    Left = 24
+    Height = 13
+    Top = 312
+    Width = 7
+    Caption = 'Y'
+    ParentColor = False
+  end
+  object Label6: TLabel
+    Left = 24
+    Height = 13
+    Top = 440
+    Width = 20
+    Caption = 'Msg'
+    ParentColor = False
+  end
+  object Label7: TLabel
+    Left = 24
+    Height = 13
+    Top = 464
+    Width = 8
+    Caption = 'R'
+    ParentColor = False
+  end
+  object Label8: TLabel
+    Left = 24
+    Height = 13
+    Top = 488
+    Width = 7
+    Caption = 'S'
+    ParentColor = False
+  end
+  object Label9: TLabel
+    Left = 16
+    Height = 13
+    Top = 16
+    Width = 25
+    Caption = 'Seed'
+    ParentColor = False
+  end
+  object Label10: TLabel
+    Left = 16
+    Height = 13
+    Top = 240
+    Width = 25
+    Caption = 'XKey'
+    ParentColor = False
+  end
+  object Label11: TLabel
+    Left = 16
+    Height = 13
+    Top = 408
+    Width = 25
+    Caption = 'KKey'
+    ParentColor = False
+  end
+  object btnGenParams: TButton
+    Left = 408
+    Height = 25
+    Top = 55
+    Width = 75
+    Caption = 'GenParams'
+    OnClick = btnGenParamsClick
+    TabOrder = 0
+  end
+  object mmoP: TMemo
+    Left = 48
+    Height = 57
+    Top = 80
+    Width = 353
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    ParentFont = False
+    TabOrder = 1
+  end
+  object mmoG: TMemo
+    Left = 48
+    Height = 57
+    Top = 144
+    Width = 353
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    ParentFont = False
+    TabOrder = 2
+  end
+  object mmoY: TMemo
+    Left = 48
+    Height = 57
+    Top = 304
+    Width = 353
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    ParentFont = False
+    TabOrder = 3
+  end
+  object edtMsg: TEdit
+    Left = 48
+    Height = 22
+    Top = 440
+    Width = 353
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    ParentFont = False
+    TabOrder = 4
+  end
+  object edtR: TEdit
+    Left = 48
+    Height = 22
+    Top = 464
+    Width = 353
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    ParentFont = False
+    TabOrder = 5
+  end
+  object edtS: TEdit
+    Left = 48
+    Height = 22
+    Top = 488
+    Width = 353
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    ParentFont = False
+    TabOrder = 6
+  end
+  object btnSign: TButton
+    Left = 408
+    Height = 25
+    Top = 448
+    Width = 75
+    Caption = 'Sign'
+    OnClick = btnSignClick
+    TabOrder = 7
+  end
+  object edtQ: TEdit
+    Left = 48
+    Height = 22
+    Top = 48
+    Width = 353
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    ParentFont = False
+    TabOrder = 8
+  end
+  object edtX: TEdit
+    Left = 48
+    Height = 22
+    Top = 272
+    Width = 353
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    ParentFont = False
+    TabOrder = 9
+  end
+  object btnVerify: TButton
+    Left = 408
+    Height = 25
+    Top = 480
+    Width = 75
+    Caption = 'Verify'
+    OnClick = btnVerifyClick
+    TabOrder = 10
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 541
+    Width = 502
+    Panels = <>
+  end
+  object edtSeed: TEdit
+    Left = 48
+    Height = 22
+    Top = 16
+    Width = 353
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    ParentFont = False
+    TabOrder = 12
+    Text = 'd5014e4b 60ef2ba8 b6211b40 62ba3224 e0427dd3'
+  end
+  object edtXKey: TEdit
+    Left = 48
+    Height = 22
+    Top = 240
+    Width = 353
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    ParentFont = False
+    TabOrder = 13
+  end
+  object edtKKey: TEdit
+    Left = 48
+    Height = 22
+    Top = 408
+    Width = 353
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    ParentFont = False
+    TabOrder = 14
+  end
+  object btnGenXY: TButton
+    Left = 408
+    Height = 25
+    Top = 279
+    Width = 75
+    Caption = 'GenXY'
+    OnClick = btnGenXYClick
+    TabOrder = 15
+  end
+  object btnSetParams: TButton
+    Left = 408
+    Height = 25
+    Top = 87
+    Width = 75
+    Caption = 'SetParams'
+    OnClick = btnSetParamsClick
+    TabOrder = 16
+  end
+  object btnSetXY: TButton
+    Left = 408
+    Height = 25
+    Top = 311
+    Width = 75
+    Caption = 'SetXY'
+    OnClick = btnSetXYClick
+    TabOrder = 17
+  end
+  object chkAbort: TCheckBox
+    Left = 416
+    Height = 17
+    Top = 136
+    Width = 43
+    Caption = 'Abort'
+    TabOrder = 18
+  end
+  object LbDSA1: TLbDSA
+    PrimeTestIterations = 10
+    KeySize = aks512
+    OnGetR = LbDSA1GetR
+    OnGetS = LbDSA1GetS
+    OnGetSeed = LbDSA1GetSeed
+    OnGetXKey = LbDSA1GetXKey
+    OnGetKKey = LbDSA1GetKKey
+    OnProgress = LbDSA1Progress
+    left = 416
+    top = 208
+  end
+end

@@ -35,41 +35,28 @@
 unit LbKeyEd1;
   {-TKey128 generation dialog}
 
-{$R *.dfm}
-
 interface
 
 uses
-{$IFDEF MSWINDOWS}
-  Windows,
-  Controls,
-  Forms,
-  Dialogs,
-  Graphics,
-  Buttons,
-  ExtCtrls,
-  StdCtrls,
-  ComCtrls,
-  Tabnotbk,
-{$ENDIF}
-
-{$IFDEF Version6}
-  DesignIntf,
-  DesignEditors,
-{$ELSE}
-  DsgnIntf,
-{$ENDIF}
-
 {$IFDEF UsingCLX}
-  QForms,
-  QGraphics,
-  QControls,
-  QStdCtrls,
-  QExtCtrls,
+  QForms, QGraphics, QControls, QStdCtrls, QExtCtrls,
+{$ELSE}
+  Forms, Controls, Graphics, Buttons, ExtCtrls, StdCtrls,
 {$ENDIF}
+
+{$IFDEF FPC}
+  ComponentEditors,
+{$ELSE}
+  {$IFDEF Version6}
+    DesignIntf,
+    DesignEditors,
+  {$ELSE}
+    DsgnIntf,
+  {$ENDIF}
+{$ENDIF}
+
   SysUtils,
   Classes;
-
 
 type
   TfrmSymmetricKey = class(TForm)
@@ -90,18 +77,21 @@ type
     procedure rgKeySizeChange(Sender: TObject);
     procedure edtPassphraseChange(Sender: TObject);
   end;
-type
-  TLbSymmetricKeyEditor = class(TDefaultEditor)
+
+  TLbSymmetricKeyEditor = class({$IFDEF FPC}TDefaultComponentEditor{$ELSE}TDefaultEditor{$ENDIF})
   public
-    procedure ExecuteVerb(Index : Integer);
-      override;
-    function GetVerb(Index : Integer) : string;
-      override;
-    function GetVerbCount : Integer;
-      override;
+    procedure ExecuteVerb(Index : Integer); override;
+    function GetVerb(Index : Integer) : string; override;
+    function GetVerbCount : Integer; override;
   end;
 
 implementation
+
+{$IFDEF FPC}
+  {$R *.lfm}
+{$ELSE}
+  {$R *.dfm}
+{$ENDIF}
 
 uses
   LbUtils, LbCipher;
@@ -170,8 +160,8 @@ begin
   try
     case cbxKeyType.ItemIndex of
       0: GenerateRandomKey(Key, SizeOf(Key));
-      1: GenerateLMDKey(Key, SizeOf(Key), {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF}(AnsiUpperCase(edtPassphrase.Text)));
-      2: GenerateLMDKey(Key, SizeOf(Key), {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF}(edtPassphrase.Text));
+      1: GenerateLMDKey(Key, SizeOf(Key), StringToUTF8(UpperCase(edtPassphrase.Text)));
+      2: GenerateLMDKey(Key, SizeOf(Key), StringToUTF8(edtPassphrase.Text));
     end;
     edtKey.Text := BufferToHex(Key, KeySizes[TKeySizeIndex(cbxKeySize.ItemIndex)]);
   finally

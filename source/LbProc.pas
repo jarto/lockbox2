@@ -37,10 +37,6 @@ interface
 
 uses
 
-{$IFDEF MSWINDOWS}
-  Windows,
-  MMSystem,
-{$ENDIF}
   Classes,
   SysUtils,
   LbCipher;

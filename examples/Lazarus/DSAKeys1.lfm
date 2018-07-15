@@ -1,0 +1,353 @@
+object frmDSAKeys: TfrmDSAKeys
+  Left = 206
+  Height = 689
+  Top = 113
+  Width = 576
+  Caption = 'DSAKeys - Public/private key manager (using TLbDSA component)'
+  ClientHeight = 689
+  ClientWidth = 576
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  LCLVersion = '1.6.4.0'
+  object GroupBox4: TGroupBox
+    Left = 8
+    Height = 81
+    Top = 8
+    Width = 553
+    Caption = ' Public/private key pair '
+    ClientHeight = 63
+    ClientWidth = 549
+    TabOrder = 0
+    object Label5: TLabel
+      Left = 184
+      Height = 13
+      Top = 46
+      Width = 43
+      Caption = 'Iterations'
+      ParentColor = False
+    end
+    object Label8: TLabel
+      Left = 184
+      Height = 13
+      Top = 32
+      Width = 46
+      Caption = 'Prime test'
+      ParentColor = False
+    end
+    object Label9: TLabel
+      Left = 16
+      Height = 13
+      Top = 38
+      Width = 41
+      Caption = 'Key Size'
+      ParentColor = False
+    end
+    object btnCreateKeys: TButton
+      Left = 320
+      Height = 25
+      Top = 32
+      Width = 137
+      Caption = 'Generate new key pair '
+      OnClick = btnCreateKeysClick
+      TabOrder = 0
+    end
+    object edtIterations: TEdit
+      Left = 240
+      Height = 21
+      Top = 34
+      Width = 33
+      TabOrder = 1
+      Text = '15'
+    end
+    object btnClear: TButton
+      Left = 480
+      Height = 25
+      Top = 32
+      Width = 57
+      Caption = 'Clear'
+      OnClick = btnClearClick
+      TabOrder = 2
+    end
+    object cbxKeySize: TComboBox
+      Left = 64
+      Height = 21
+      Top = 34
+      Width = 81
+      ItemHeight = 13
+      Items.Strings = (
+        '128'
+        '256'
+        '512'
+        '768'
+        '1024'
+      )
+      Style = csDropDownList
+      TabOrder = 3
+    end
+  end
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 273
+    Top = 96
+    Width = 553
+    Caption = ' Public key '
+    ClientHeight = 255
+    ClientWidth = 549
+    TabOrder = 1
+    object Label6: TLabel
+      Left = 320
+      Height = 13
+      Top = 236
+      Width = 55
+      Caption = 'Passphrase'
+      ParentColor = False
+    end
+    object Label1: TLabel
+      Left = 24
+      Height = 13
+      Top = 29
+      Width = 8
+      Caption = 'Q'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 24
+      Height = 13
+      Top = 64
+      Width = 7
+      Caption = 'P'
+      ParentColor = False
+    end
+    object Label10: TLabel
+      Left = 24
+      Height = 13
+      Top = 120
+      Width = 8
+      Caption = 'G'
+      ParentColor = False
+    end
+    object Label11: TLabel
+      Left = 24
+      Height = 13
+      Top = 176
+      Width = 7
+      Caption = 'Y'
+      ParentColor = False
+    end
+    object btnLoadPublic: TButton
+      Left = 88
+      Height = 25
+      Top = 232
+      Width = 105
+      Caption = 'Load ASN.1 set'
+      OnClick = btnLoadPublicClick
+      TabOrder = 0
+    end
+    object btnSavePublic: TButton
+      Left = 200
+      Height = 25
+      Top = 232
+      Width = 105
+      Caption = 'Save ASN.1 set'
+      OnClick = btnSavePublicClick
+      TabOrder = 1
+    end
+    object edtPublicPhrase: TEdit
+      Left = 384
+      Height = 21
+      Top = 232
+      Width = 121
+      TabOrder = 2
+    end
+    object edtPubQ: TEdit
+      Left = 48
+      Height = 22
+      Top = 24
+      Width = 489
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Courier New'
+      ParentFont = False
+      TabOrder = 3
+    end
+    object mmoPubP: TMemo
+      Left = 48
+      Height = 49
+      Top = 56
+      Width = 489
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Courier New'
+      ParentFont = False
+      TabOrder = 4
+    end
+    object mmoPubG: TMemo
+      Left = 48
+      Height = 49
+      Top = 112
+      Width = 489
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Courier New'
+      ParentFont = False
+      TabOrder = 5
+    end
+    object mmoPubY: TMemo
+      Left = 48
+      Height = 49
+      Top = 168
+      Width = 489
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Courier New'
+      ParentFont = False
+      TabOrder = 6
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 8
+    Height = 257
+    Top = 376
+    Width = 553
+    Caption = ' Private key '
+    ClientHeight = 239
+    ClientWidth = 549
+    TabOrder = 2
+    object Label7: TLabel
+      Left = 320
+      Height = 13
+      Top = 220
+      Width = 55
+      Caption = 'Passphrase'
+      ParentColor = False
+    end
+    object Label3: TLabel
+      Left = 24
+      Height = 13
+      Top = 29
+      Width = 8
+      Caption = 'Q'
+      ParentColor = False
+    end
+    object Label4: TLabel
+      Left = 24
+      Height = 13
+      Top = 64
+      Width = 7
+      Caption = 'P'
+      ParentColor = False
+    end
+    object Label12: TLabel
+      Left = 24
+      Height = 13
+      Top = 120
+      Width = 8
+      Caption = 'G'
+      ParentColor = False
+    end
+    object Label13: TLabel
+      Left = 24
+      Height = 13
+      Top = 181
+      Width = 7
+      Caption = 'X'
+      ParentColor = False
+    end
+    object btnLoadPrivate: TButton
+      Left = 88
+      Height = 25
+      Top = 216
+      Width = 105
+      Caption = 'Load ASN.1 set'
+      OnClick = btnLoadPrivateClick
+      TabOrder = 0
+    end
+    object btnSavePrivate: TButton
+      Left = 200
+      Height = 25
+      Top = 216
+      Width = 105
+      Caption = 'Save ASN.1 set'
+      OnClick = btnSavePrivateClick
+      TabOrder = 1
+    end
+    object edtPrivatePhrase: TEdit
+      Left = 384
+      Height = 21
+      Top = 216
+      Width = 121
+      TabOrder = 2
+    end
+    object edtPriQ: TEdit
+      Left = 48
+      Height = 22
+      Top = 24
+      Width = 489
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Courier New'
+      ParentFont = False
+      TabOrder = 3
+    end
+    object mmoPriP: TMemo
+      Left = 48
+      Height = 49
+      Top = 56
+      Width = 489
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Courier New'
+      ParentFont = False
+      TabOrder = 4
+    end
+    object mmoPriG: TMemo
+      Left = 48
+      Height = 57
+      Top = 112
+      Width = 489
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Courier New'
+      ParentFont = False
+      TabOrder = 5
+    end
+    object edtPriX: TEdit
+      Left = 48
+      Height = 22
+      Top = 176
+      Width = 489
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Courier New'
+      ParentFont = False
+      TabOrder = 6
+    end
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 666
+    Width = 576
+    Panels = <>
+  end
+  object dlgOpenASN: TOpenDialog
+    DefaultExt = '.asn'
+    Filter = 'ASN.1 Files (*.asn)|*.asn|All Files|*.*'
+    left = 16
+    top = 336
+  end
+  object dlgSaveASN: TSaveDialog
+    DefaultExt = '.asn'
+    Filter = 'ASN.1 Files (*.asn)|*.asn|All Files|*.*'
+    left = 48
+    top = 336
+  end
+  object LbDSA1: TLbDSA
+    PrimeTestIterations = 15
+    KeySize = aks512
+    left = 288
+    top = 40
+  end
+end

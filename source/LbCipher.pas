@@ -36,7 +36,7 @@ unit LbCipher;
 interface
 
 uses
-{$IFDEF MSWINDOWS}
+{$IFNDEF FPC}
   Windows,
 {$ENDIF}
 {$IFDEF POSIX}
@@ -292,7 +292,7 @@ procedure UpdateLMD(var Context : TLMDContext;
             const Buf; BufSize : LongInt); 
 
 { SHA-1 message digest }
-procedure InitSHA1(var Context: TSHA1Context); 
+procedure InitSHA1(var Context: TSHA1Context);
 procedure HashSHA1(var Digest : TSHA1Digest;
             const Buf; BufSize : Longint); 
 procedure UpdateSHA1(var Context : TSHA1Context;
@@ -307,54 +307,16 @@ procedure HashMix128(var Digest : LongInt;
             const Buf;  BufSize : LongInt);
 
 { String hashing }
-procedure StringHashELF(var Digest : LongInt;
-            const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-procedure StringHashLMD(var Digest; DigestSize : LongInt;
-            const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-procedure StringHashMD5(var Digest : TMD5Digest;
-            const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-procedure StringHashMix128(var Digest : LongInt;
-            const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-procedure StringHashSHA1(var Digest : TSHA1Digest;
-            const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-
-{$IFDEF UNICODE} // only for Tiburon
-procedure StringHashELFW(var Digest : LongInt;
-            const Str : UnicodeString);
-procedure StringHashLMDW(var Digest; DigestSize : LongInt;
-            const Str : UnicodeString);
-procedure StringHashMD5W(var Digest : TMD5Digest;
-            const Str : UnicodeString);
-procedure StringHashMix128W(var Digest : LongInt;
-            const Str : UnicodeString);
-procedure StringHashSHA1W(var Digest : TSHA1Digest;
-            const Str : UnicodeString);
-{$ENDIF}
-
-procedure StringHashELFA(var Digest : LongInt;
-            const Str : AnsiString);
-procedure StringHashLMDA(var Digest; DigestSize : LongInt;
-            const Str : AnsiString);
-procedure StringHashMD5A(var Digest : TMD5Digest;
-            const Str : AnsiString);
-procedure StringHashMix128A(var Digest : LongInt;
-            const Str : AnsiString);
-procedure StringHashSHA1A(var Digest : TSHA1Digest;
-            const Str : AnsiString);
+procedure StringHashELF(var Digest : LongInt; const Str : RawByteString);
+procedure StringHashLMD(var Digest; DigestSize : LongInt; const Str : RawByteString);
+procedure StringHashMD5(var Digest : TMD5Digest; const Str : RawByteString);
+procedure StringHashMix128(var Digest : LongInt; const Str : RawByteString);
+procedure StringHashSHA1(var Digest : TSHA1Digest; const Str : RawByteString);
 
 { Key generation }
-procedure GenerateLMDKey(var Key; KeySize : Integer;
-            const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-procedure GenerateMD5Key(var Key : TKey128;
-            const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
+procedure GenerateLMDKey(var Key; KeySize : Integer; const Str : RawByteString);
+procedure GenerateMD5Key(var Key : TKey128; const Str : RawByteString);
 procedure GenerateRandomKey(var Key; KeySize : Integer);
-
-{$IFDEF UNICODE}
-procedure GenerateLMDKeyW(var Key; KeySize : Integer; const Str : UnicodeString);
-procedure GenerateMD5KeyW(var Key : TKey128; const Str : UnicodeString);
-{$ENDIF}
-procedure GenerateLMDKeyA(var Key; KeySize : Integer; const Str : AnsiString);
-procedure GenerateMD5KeyA(var Key : TKey128; const Str : AnsiString);
 
 { Misc public utilities }
 function Ran01(var Seed : LongInt) : LongInt;
@@ -369,7 +331,8 @@ function RolX(I, C : DWord) : DWord; register;
 implementation
 
 uses
-  LbUtils, SysUtils, LbRandom;
+  SysUtils,
+  LbUtils, LbRandom;
 
 
 {first 2048 bits of Pi in hexadecimal, low to high, without the leading "3"}
@@ -393,7 +356,6 @@ const
     $B4, $CC, $5C, $34, $11, $41, $E8, $CE, $A1, $54, $86, $AF, $7C, $72, $E9, $93);
 
 type
-  pMD5ContextEx = ^TMD5ContextEx;
   TMD5ContextEx = packed record
     Count : array [0..1] of DWord;  {number of bits handled mod 2^64}  
     State : array [0..3] of DWord;  {scratch buffer}                   
@@ -413,7 +375,7 @@ type
 type
   {bit mixing types}
   T128Bit     = array [0..3] of DWord;
-  T256Bit     = array [0..7] of DWord;                                 
+                              
 
 const
   BCSalts: array [0..3] of DWord =                                     
@@ -451,8 +413,6 @@ const
 { Rijndael constants }
 const
   RDLNb128 = 4;      { 128 bit block }
-  RDLNb192 = 6;      { 192 bit block (not used) }
-  RDLNb256 = 8;      { 256 bit block (not used) }
 
   RDLNk128 = 4;      { 128 bit key }
   RDLNk192 = 6;      { 192 bit key }
@@ -461,7 +421,6 @@ const
 { Rijndael structures }
 type
   TRDLVectors = array[0..(RDLNb128 - 1)] of TRDLVector;
-  TRDLMixColMatrix = array[0..3, 0..3] of Byte;
 
 { Rijndael tables }
 {$I LbRDL.inc}                                                       {!!.01}
@@ -1231,55 +1190,20 @@ begin
     TByteArray(Key)[I] := lbSysRandomByte;                           {!!.01}
 end;
 { -------------------------------------------------------------------------- }
-procedure GenerateLMDKey(var Key; KeySize : Integer;
-            const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
+procedure GenerateLMDKey(var Key; KeySize : Integer; const Str : RawByteString);
 begin
-  {$IFDEF LOCKBOXUNICODE}
-  GenerateLMDKeyW(Key, KeySize, Str);
-  {$ELSE}
-  GenerateLMDKeyA(Key, KeySize, Str);
-  {$ENDIF}
+  HashLMD(Key, KeySize, Str[1], Length(Str));
 end;
 
-procedure GenerateLMDKeyA(var Key; KeySize : Integer;
-            const Str : Ansistring);
-begin
-  HashLMD(Key, KeySize, Str[1], Length(Str) * SizeOf(AnsiChar));
-end;
-
-{$IFDEF UNICODE}
-procedure GenerateLMDKeyW(var Key; KeySize : Integer; const Str : UnicodeString);
-begin
-  HashLMD(Key, KeySize, Str[1], Length(Str) * SizeOf(WideChar));
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
-procedure GenerateMD5Key(var Key : TKey128; const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-begin
-  {$IFDEF LOCKBOXUNICODE}
-  GenerateMD5KeyW(Key, Str);
-  {$ELSE}
-  GenerateMD5KeyA(Key, Str);
-  {$ENDIF}
-end;
-
-procedure GenerateMD5KeyA(var Key : TKey128; const Str : AnsiString);
+procedure GenerateMD5Key(var Key : TKey128; const Str : RawByteString);
 var
   D : TMD5Digest;
 begin
-  HashMD5(D, Str[1], Length(Str) * SizeOf(AnsiChar));
+  HashMD5(D, Str[1], Length(Str));
   Key := TKey128(D);
 end;
 
-{$IFDEF UNICODE}
-procedure GenerateMD5KeyW(var Key : TKey128; const Str : UnicodeString);
-var
-  D : TMD5Digest;
-begin
-  HashMD5(D, Str[1], Length(Str) * SizeOf(WideChar));
-  Key := TKey128(D);
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 function Ran0Prim(var Seed : LongInt; IA, IQ, IR : LongInt) : LongInt;
 const
@@ -1403,18 +1327,7 @@ begin
     Digest := Digest and (not X);
   end;
 end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-procedure StringHashELFW(var Digest : LongInt; const Str : UnicodeString);
-begin
-  HashELF(Digest, Str[1], Length(Str) * SizeOf(WideChar));
-end;
-{$ENDIF}
 
-procedure StringHashELFA(var Digest : LongInt; const Str : AnsiString);
-begin
-  HashELF(Digest, Str[1], Length(Str) * SizeOf(AnsiChar));
-end;
 { -------------------------------------------------------------------------- }
 function RolX(I, C : DWord) : DWord; register;
 {$IFDEF FPC}
@@ -1828,46 +1741,11 @@ begin
 
   Digest := Temp[3];
 end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-procedure StringHashMix128W(var Digest : LongInt; const Str : Unicodestring);
-begin
-  HashMix128(Digest, Str[1], Length(Str) * SizeOf(WideChar));
-end;
-{$ENDIF}
 
-procedure StringHashMix128A(var Digest : LongInt; const Str : AnsiString);
-begin
-  HashMix128(Digest, Str[1], Length(Str) * SizeOf(AnsiChar));
-end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-procedure StringHashMD5W(var Digest : TMD5Digest; const Str : UnicodeString);
-begin
-  HashMD5(Digest, Str[1], Length(Str) * SizeOf(WideChar));
-end;
-{$ENDIF}
-
-procedure StringHashMD5A(var Digest : TMD5Digest; const Str : AnsiString);
-begin
-  HashMD5(Digest, Str[1], Length(Str) * SizeOf(AnsiChar));
-end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-procedure StringHashLMDW(var Digest; DigestSize : LongInt; const Str : UnicodeString);
-begin
-  HashLMD(Digest, DigestSize, Str[1], Length(Str) * SizeOf(WideChar));
-end;
-{$ENDIF}
-
-procedure StringHashLMDA(var Digest; DigestSize : LongInt; const Str : AnsiString);
-begin
-  HashLMD(Digest, DigestSize, Str[1], Length(Str) * SizeOf(AnsiChar));
-end;
 { -------------------------------------------------------------------------- }
 procedure XorMemPrim(var Mem1;  const Mem2;  Count : Cardinal); register;
 {$IFDEF NO_ASSEMBLY}
-var i: Integer;
+var i: Cardinal;
     C1,C2: ^DWORD;
     B1,B2: PByte;
 begin
@@ -1949,18 +1827,6 @@ begin
   InitSHA1( Context );
   UpdateSHA1( Context, Buf, BufSize );
   FinalizeSHA1( Context, Digest );
-end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-procedure StringHashSHA1W(var Digest : TSHA1Digest; const Str : UnicodeString);
-begin
-  HashSHA1(Digest, Str[1], Length(Str) * SizeOf(WideChar));
-end;
-{$ENDIF}
-
-procedure StringHashSHA1A(var Digest : TSHA1Digest; const Str : AnsiString);
-begin
-  HashSHA1(Digest, Str[1], Length(Str) * SizeOf(AnsiChar));
 end;
 { -------------------------------------------------------------------------- }
 procedure SHA1Hash( var Context : TSHA1Context );
@@ -2257,49 +2123,29 @@ begin
   end;
 end;
 
-procedure StringHashELF(var Digest : LongInt; const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
+procedure StringHashELF(var Digest : LongInt; const Str : RawByteString);
 begin
-  {$IFDEF LOCKBOXUNICODE}
-  StringHashELFW(Digest, Str);
-  {$ELSE}
-  StringHashELFA(Digest, Str);
-  {$ENDIF}
+  HashELF(Digest, Str[1], Length(Str));
 end;
 
-procedure StringHashLMD(var Digest; DigestSize : LongInt; const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
+procedure StringHashLMD(var Digest; DigestSize : LongInt; const Str : RawByteString);
 begin
-  {$IFDEF LOCKBOXUNICODE}
-  StringHashLMDW(Digest, DigestSize, Str);
-  {$ELSE}
-  StringHashLMDA(Digest, DigestSize, Str);
-  {$ENDIF}
+  HashLMD(Digest, DigestSize, Str[1], Length(Str));
 end;
 
-procedure StringHashMD5(var Digest : TMD5Digest; const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
+procedure StringHashMD5(var Digest : TMD5Digest; const Str : RawByteString);
 begin
-  {$IFDEF LOCKBOXUNICODE}
-  StringHashMD5W(Digest, Str);
-  {$ELSE}
-  StringHashMD5A(Digest, Str);
-  {$ENDIF}
+  HashMD5(Digest, Str[1], Length(Str));
 end;
 
-procedure StringHashMix128(var Digest : LongInt; const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
+procedure StringHashMix128(var Digest : LongInt; const Str : RawByteString);
 begin
-  {$IFDEF LOCKBOXUNICODE}
-  StringHashMix128W(Digest, Str);
-  {$ELSE}
-  StringHashMix128A(Digest, Str);
-  {$ENDIF}
+  HashMix128(Digest, Str[1], Length(Str));
 end;
 
-procedure StringHashSHA1(var Digest : TSHA1Digest; const Str : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
+procedure StringHashSHA1(var Digest : TSHA1Digest; const Str : RawByteString);
 begin
-  {$IFDEF LOCKBOXUNICODE}
-  StringHashSHA1W(Digest, Str);
-  {$ELSE}
-  StringHashSHA1A(Digest, Str);
-  {$ENDIF}
+  HashSHA1(Digest, Str[1], Length(Str));
 end;
 
 end.

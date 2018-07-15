@@ -36,7 +36,7 @@ unit LbRSA;
 interface
 
 uses
-{$IFDEF MSWINDOWS}
+{$IFNDEF FPC}
   Windows,
 {$ENDIF}
 {$IFDEF POSIX}
@@ -138,8 +138,6 @@ type
         read FExponent;
       property ExponentAsString : string
         read GetExponentAsString write SetExponentAsString;
-      property Passphrase : AnsiString
-        read FPassphrase write FPassphrase;
   end;
 
 
@@ -156,16 +154,10 @@ type
       destructor Destroy; override;
       procedure DecryptFile(const InFile, OutFile : string); override;
       procedure DecryptStream(InStream , OutStream : TStream); override;
-      function  DecryptStringA(const InString : AnsiString) : AnsiString; override;
-      {$IFDEF UNICODE}
-      function  DecryptStringW(const InString : UnicodeString) : UnicodeString; override;
-      {$ENDIF}
+      function  DecryptString(const InString : RawByteString) : RawByteString; override;
       procedure EncryptFile(const InFile, OutFile : string); override;
       procedure EncryptStream(InStream, OutStream : TStream); override;
-      function  EncryptStringA(const InString : AnsiString) : AnsiString; override;
-      {$IFDEF UNICODE}
-      function  EncryptStringW(const InString : UnicodeString) : UnicodeString; override;
-      {$ENDIF}
+      function  EncryptString(const InString : RawByteString) : RawByteString; override;
       procedure GenerateKeyPair; override;
       function  OutBufSizeNeeded(InBufSize : Cardinal) : Cardinal; override;
       procedure RSACallback(var Abort : Boolean);
@@ -207,18 +199,12 @@ type
       procedure SignBuffer(const Buf; BufLen : Cardinal); override;
       procedure SignFile(const AFileName : string);  override;
       procedure SignStream(AStream : TStream); override;
-      procedure SignStringA(const AStr : AnsiString); override;
-      {$IFDEF UNICODE}
-      procedure SignStringW(const AStr : UnicodeString); override;
-      {$ENDIF}
+      procedure SignString(const AStr : RawByteString); override;
 
       function  VerifyBuffer(const Buf; BufLen : Cardinal) : Boolean; override;
       function  VerifyFile(const AFileName : string) : Boolean; override;
       function  VerifyStream(AStream : TStream) : Boolean; override;
-      function  VerifyStringA(const AStr : AnsiString) : Boolean; override;
-      {$IFDEF UNICODE}
-      function  VerifyStringW(const AStr : UnicodeString) : Boolean; override;
-      {$ENDIF}
+      function  VerifyString(const AStr : RawByteString) : Boolean; override;
 
     public {properties}
       property PrivateKey : TLbRSAKey
@@ -287,14 +273,8 @@ procedure RSAEncryptFile(const InFile, OutFile : string;
             Key : TLbRSAKey; Encrypt : Boolean);
 procedure RSAEncryptStream(InStream, OutStream : TStream;
             Key : TLbRSAKey; Encrypt : Boolean);
-function RSAEncryptString(const InString : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF};
-            Key : TLbRSAKey; Encrypt : Boolean) : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF};
-function RSAEncryptStringA(const InString : AnsiString;
-            Key : TLbRSAKey; Encrypt : Boolean) : AnsiString;
-{$IFDEF UNICODE}
-function RSAEncryptStringW(const InString : UnicodeString;
-            Key : TLbRSAKey; Encrypt : Boolean) : UnicodeString;
-{$ENDIF}
+function RSAEncryptString(const InString : RawByteString;
+            Key : TLbRSAKey; Encrypt : Boolean) : RawByteString;
 procedure GenerateRSAKeysEx(var PrivateKey, PublicKey : TLbRSAKey;
             KeySize : TLbAsymKeySize; PrimeTestIterations : Byte;
             Callback : TLbRSACallback);
@@ -764,19 +744,8 @@ begin
   OutStream.Write(pOutBlk^, i);
 end;
 { -------------------------------------------------------------------------- }
-function RSAEncryptString(const InString : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF};
-            Key : TLbRSAKey; Encrypt : Boolean) : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF};
+function RSAEncryptString(const InString : RawByteString; Key : TLbRSAKey; Encrypt : Boolean) : RawByteString;
   { encrypt/decrypt string data with RSA key }
-begin
-  {$IFDEF LOCKBOXUNICODE}
-  Result := RSAEncryptStringW(InString, Key, Encrypt);
-  {$ELSE}
-  Result := RSAEncryptStringA(InString, Key, Encrypt);
-  {$ENDIF}
-end;
-
-function RSAEncryptStringA(const InString : AnsiString;
-            Key : TLbRSAKey; Encrypt : Boolean) : AnsiString;
 var
   InStream  : TMemoryStream;
   OutStream : TMemoryStream;
@@ -785,60 +754,26 @@ begin
   InStream := TMemoryStream.Create;
   OutStream := TMemoryStream.Create;
   WorkStream := TMemoryStream.Create;
-  InStream.Write(InString[1], Length(InString) * SizeOf(AnsiChar));
+  InStream.Write(InString[1], Length(InString));
   InStream.Position := 0;
 
   if Encrypt then begin
     RSAEncryptStream(InStream, WorkStream, Key, True);
     WorkStream.Position := 0;
-    LbEncodeBase64A(WorkStream, OutStream);
+    LbEncodeBase64(WorkStream, OutStream);
   end else begin
-    LbDecodeBase64A(InStream, WorkStream);
+    LbDecodeBase64(InStream, WorkStream);
     WorkStream.Position := 0;
     RSAEncryptStream(WorkStream, OutStream, Key, False);
   end;
   OutStream.Position := 0;
-  SetLength(Result, OutStream.Size div SizeOf(AnsiChar));
+  SetLength(Result, OutStream.Size);
   OutStream.Read(Result[1], OutStream.Size);
 
   InStream.Free;
   OutStream.Free;
   WorkStream.Free;
 end;
-
-{$IFDEF UNICODE}
-function RSAEncryptStringW(const InString : UnicodeString;
-            Key : TLbRSAKey; Encrypt : Boolean) : UnicodeString;
-var
-  InStream  : TMemoryStream;
-  OutStream : TMemoryStream;
-  WorkStream : TMemoryStream;
-begin
-  InStream := TMemoryStream.Create;
-  OutStream := TMemoryStream.Create;
-  WorkStream := TMemoryStream.Create;
-  InStream.Write(InString[1], Length(InString) * SizeOf(WideChar));
-  InStream.Position := 0;
-
-  if Encrypt then begin
-    RSAEncryptStream(InStream, WorkStream, Key, True);
-    WorkStream.Position := 0;
-    LbEncodeBase64W(WorkStream, OutStream);
-  end else begin
-    LbDecodeBase64W(InStream, WorkStream);
-    WorkStream.Position := 0;
-    RSAEncryptStream(WorkStream, OutStream, Key, False);
-  end;
-  OutStream.Position := 0;
-  SetLength(Result, OutStream.Size div SizeOf(Char));
-  OutStream.Read(Result[1], OutStream.Size);
-
-  InStream.Free;
-  OutStream.Free;
-  WorkStream.Free;
-end;
-{$ENDIF}
-
 
 { == TLbRSAKey ============================================================= }
 constructor TLbRSAKey.Create(aKeySize : TLbAsymKeySize);
@@ -946,7 +881,7 @@ begin
   if (Tag <> ASN1_TYPE_SEQUENCE) then
     raise Exception.Create(sRSAKeyBadKey);
 
-  ParseASN1(pInput, Max, FModulus);
+  KeySize := KeySizeFromBytes(ParseASN1(pInput, Max, FModulus));
   ParseASN1(pInput, Max, FExponent);
 
   Result := (Max = 0);
@@ -986,19 +921,11 @@ begin
   RSAEncryptStream(InStream, OutStream, FPrivateKey, False);
 end;
 { -------------------------------------------------------------------------- }
-function TLbRSA.DecryptStringA(const InString : AnsiString) : AnsiString;
+function TLbRSA.DecryptString(const InString : RawByteString) : RawByteString;
   { decrypt string data with RSA private key }
 begin
-  Result := RSAEncryptStringA(InString, FPrivateKey, False);
+  Result := RSAEncryptString(InString, FPrivateKey, False);
 end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-function TLbRSA.DecryptStringW(const InString : UnicodeString) : UnicodeString;
-  { decrypt string data with RSA private key }
-begin
-  Result := RSAEncryptStringW(InString, FPrivateKey, False);
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 procedure TLbRSA.EncryptFile(const InFile, OutFile : string);
   { encrypt file data with RSA public key }
@@ -1012,19 +939,11 @@ begin
   RSAEncryptStream(InStream, OutStream, FPublicKey, True);
 end;
 { -------------------------------------------------------------------------- }
-function TLbRSA.EncryptStringA(const InString : AnsiString) : AnsiString;
+function TLbRSA.EncryptString(const InString : RawByteString) : RawByteString;
   { encrypt string data with RSA public key }
 begin
-  Result := RSAEncryptStringA(InString, FPublicKey, True);
+  Result := RSAEncryptString(InString, FPublicKey, True);
 end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-function TLbRSA.EncryptStringW(const InString : UnicodeString) : UnicodeString;
-  { encrypt string data with RSA public key }
-begin
-  Result := RSAEncryptStringW(InString, FPublicKey, True);
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 procedure TLbRSA.GenerateKeyPair;
   { generate RSA public/private key pair }
@@ -1211,7 +1130,7 @@ begin
   end;
 end;
 { -------------------------------------------------------------------------- }
-procedure TLbRSASSA.SignStringA(const AStr : AnsiString);
+procedure TLbRSASSA.SignString(const AStr : RawByteString);
   { generate RSA signature of string data }
 var
   MD5Digest  : TMD5Digest;
@@ -1220,38 +1139,16 @@ begin
   case FHashMethod of
     hmMD5  :
       begin
-        StringHashMD5A(MD5Digest, AStr);
+        StringHashMD5(MD5Digest, AStr);
         EncryptHash(MD5Digest, SizeOf(MD5Digest));
       end;
     hmSHA1 :
       begin
-        StringHashSHA1A(SHA1Digest, AStr);
+        StringHashSHA1(SHA1Digest, AStr);
         EncryptHash(SHA1Digest, SizeOf(SHA1Digest));
       end;
   end;
 end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-procedure TLbRSASSA.SignStringW(const AStr : UnicodeString);
-  { generate RSA signature of string data }
-var
-  MD5Digest  : TMD5Digest;
-  SHA1Digest : TSHA1Digest;
-begin
-  case FHashMethod of
-    hmMD5  :
-      begin
-        StringHashMD5W(MD5Digest, AStr);
-        EncryptHash(MD5Digest, SizeOf(MD5Digest));
-      end;
-    hmSHA1 :
-      begin
-        StringHashSHA1W(SHA1Digest, AStr);
-        EncryptHash(SHA1Digest, SizeOf(SHA1Digest));
-      end;
-  end;
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 function TLbRSASSA.VerifyBuffer(const Buf; BufLen : Cardinal) : Boolean;
   { verify RSA signature agrees with buffer data }
@@ -1331,7 +1228,7 @@ begin
   end;
 end;
 { -------------------------------------------------------------------------- }
-function TLbRSASSA.VerifyStringA(const AStr : AnsiString) : Boolean;
+function TLbRSASSA.VerifyString(const AStr : RawByteString) : Boolean;
   { verify RSA signature agrees with string data }
 var
   MD5Digest1  : TMD5Digest;
@@ -1343,47 +1240,19 @@ begin
     hmMD5 :
       begin
         DecryptHash(MD5Digest1, SizeOf(TMD5Digest));
-        StringHashMD5A(MD5Digest2, AStr);
+        StringHashMD5(MD5Digest2, AStr);
         Result := CompareBuffers(MD5Digest1, MD5Digest2, SizeOf(TMD5Digest));
       end;
     hmSHA1 :
       begin
         DecryptHash(SHA1Digest1, SizeOf(TSHA1Digest));
-        StringHashSHA1A(SHA1Digest2, AStr);
+        StringHashSHA1(SHA1Digest2, AStr);
         Result := CompareBuffers(SHA1Digest1, SHA1Digest2, SizeOf(TSHA1Digest));
       end;
   else
     Result := False;
   end;
 end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-function TLbRSASSA.VerifyStringW(const AStr : UnicodeString) : Boolean;
-  { verify RSA signature agrees with string data }
-var
-  MD5Digest1  : TMD5Digest;
-  MD5Digest2  : TMD5Digest;
-  SHA1Digest1 : TSHA1Digest;
-  SHA1Digest2 : TSHA1Digest;
-begin
-  case FHashMethod of
-    hmMD5 :
-      begin
-        DecryptHash(MD5Digest1, SizeOf(TMD5Digest));
-        StringHashMD5W(MD5Digest2, AStr);
-        Result := CompareBuffers(MD5Digest1, MD5Digest2, SizeOf(TMD5Digest));
-      end;
-    hmSHA1 :
-      begin
-        DecryptHash(SHA1Digest1, SizeOf(TSHA1Digest));
-        StringHashSHA1W(SHA1Digest2, AStr);
-        Result := CompareBuffers(SHA1Digest1, SHA1Digest2, SizeOf(TSHA1Digest));
-      end;
-  else
-    Result := False;
-  end;
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 procedure TLbRSASSA.RSACallback(var Abort : Boolean);
   { pass callback on via OnProgress event }

@@ -30,84 +30,90 @@ uses
   LbClass;
 
 type
-  TForm1 = class(TForm)
-    GroupBox4: TGroupBox;
-    btnCreateKeys: TButton;
-    GroupBox1: TGroupBox;
-    Label1: TLabel;
-    Label2: TLabel;
-    Label6: TLabel;
-    edtPublicE: TEdit;
-    edtPublicM: TEdit;
-    btnLoadPublic: TButton;
-    btnSavePublic: TButton;
-    edtPublicPhrase: TEdit;
-    GroupBox2: TGroupBox;
-    Label3: TLabel;
-    Label4: TLabel;
-    Label7: TLabel;
-    edtPrivateE: TEdit;
-    edtPrivateM: TEdit;
-    btnLoadPrivate: TButton;
-    btnSavePrivate: TButton;
-    edtPrivatePhrase: TEdit;
-    OpenDialog1: TOpenDialog;
-    SaveDialog1: TSaveDialog;
-    Label5: TLabel;
+  TlbRSAKeysForm = class(TForm)
+    sbrVerify: TStatusBar;
+    pnlPersistKeys: TPanel;
+    grpPersistKeys: TGroupBox;
+    dlgSave: TSaveDialog;
+    dlgOpen: TOpenDialog;
+    pnlKeys: TPanel;
+    tbcKeyVisibility: TTabControl;
+    lblExponent: TLabel;
+    edtExponent: TEdit;
+    btnLoad: TButton;
+    btnSave: TButton;
+    edtPassPhrase: TEdit;
+    lblPassPhrase: TLabel;
+    lblBase64Encoded: TLabel;
+    mmoBase64Encoded: TMemo;
+    lblModulus: TLabel;
+    mmoModulus: TMemo;
+    pnlKeySize: TPanel;
+    lblKeySize: TLabel;
+    cmbKeySize: TComboBox;
+    lblIterations: TLabel;
     edtIterations: TEdit;
-    LbRSA1: TLbRSA;
-    btnClear: TButton;
-    Label8: TLabel;
-    StatusBar1: TStatusBar;
-    Label9: TLabel;
-    cbxKeySize: TComboBox;
+    btnCreateKeys: TButton;
+    kpRSA: TLbRSA;
     procedure btnCreateKeysClick(Sender: TObject);
-    procedure btnLoadPublicClick(Sender: TObject);
-    procedure btnSavePublicClick(Sender: TObject);
-    procedure btnLoadPrivateClick(Sender: TObject);
-    procedure btnSavePrivateClick(Sender: TObject);
-    procedure btnClearClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
+    procedure btnLoadClick(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
+    procedure tbcKeyVisibilityChange(Sender: TObject);
+    procedure cmbKeySizeChange(Sender: TObject);
+  private
+    FActiveKey : TLbRSAKey;
+    procedure UpdateControls;
+    procedure SetKeySize(const AValue : TLbAsymKeySize);
+  public
+    procedure AfterConstruction; override;
   end;
 
 var
-  Form1: TForm1;
+  lbRSAKeysForm: TlbRSAKeysForm;
 
 implementation
 
 {$R *.dfm}
 
+uses
+  LbUtils;
 
-procedure TForm1.btnCreateKeysClick(Sender: TObject);
+procedure TlbRSAKeysForm.AfterConstruction;
+begin
+  inherited;
+//  cmbKeySize.ItemIndex := Ord(kpRSA.KeySize);
+  FActiveKey := kpRSA.PublicKey;
+  UpdateControls;
+end;
+
+procedure TlbRSAKeysForm.btnCreateKeysClick(Sender: TObject);
 begin
   Screen.Cursor := crHourglass;
-  StatusBar1.SimpleText := 'Generating key pair, this may take a while';
+  sbrVerify.SimpleText := 'Generating key pair, this may take a while';
   try
-    LbRSA1.PrimeTestIterations := StrToIntDef(edtIterations.Text, 20);
-    LbRSA1.KeySize := TLbAsymKeySize(cbxKeySize.ItemIndex);
-    LbRSA1.GenerateKeyPair;
-    edtPublicE.Text  := LbRSA1.PublicKey.ExponentAsString;
-    edtPublicM.Text  := LbRSA1.PublicKey.ModulusAsString;
-    edtPrivateE.Text := LbRSA1.PrivateKey.ExponentAsString;
-    edtPrivateM.Text := LbRSA1.PrivateKey.ModulusAsString;
+    kpRSA.PrimeTestIterations := StrToIntDef(edtIterations.Text, 20);
+    kpRSA.KeySize := TLbAsymKeySize(cmbKeySize.ItemIndex);
+    kpRSA.GenerateKeyPair;
+    tbcKeyVisibilityChange(self);
   finally
     Screen.Cursor := crDefault;
-    StatusBar1.SimpleText := '';
+    sbrVerify.SimpleText := '';
   end;
 end;
 
-procedure TForm1.btnLoadPublicClick(Sender: TObject);
+procedure TlbRSAKeysForm.btnLoadClick(Sender: TObject);
 var
   FS : TFileStream;
 begin
-  if OpenDialog1.Execute then begin
-    FS := TFileStream.Create(OpenDialog1.FileName, fmOpenRead);
+  if dlgOpen.Execute then
+  begin
+    FS := TFileStream.Create(dlgOpen.FileName, fmOpenRead);
     Screen.Cursor := crHourGlass;
     try
-      LbRSA1.PublicKey.PassPhrase := edtPublicPhrase.Text;
-      LbRSA1.PublicKey.LoadFromStream(FS);
-      edtPublicE.Text := LbRSA1.PublicKey.ExponentAsString;
-      edtPublicM.Text := LbRSA1.PublicKey.ModulusAsString;
+      FActiveKey.Clear;
+      FActiveKey.LoadFromStream(FS, StringToUTF8(edtPassPhrase.Text));
+      SetKeySize(FActiveKey.KeySize);
+      UpdateControls;
     finally
       FS.Free;
       Screen.Cursor := crDefault;
@@ -115,16 +121,16 @@ begin
   end;
 end;
 
-procedure TForm1.btnSavePublicClick(Sender: TObject);
+procedure TlbRSAKeysForm.btnSaveClick(Sender: TObject);
 var
   FS : TFileStream;
 begin
-  if SaveDialog1.Execute then begin
-    FS := TFileStream.Create(SaveDialog1.FileName, fmCreate);
+  if dlgSave.Execute then
+  begin
+    FS := TFileStream.Create(dlgSave.FileName, fmCreate);
     Screen.Cursor := crHourGlass;
     try
-      LbRSA1.PublicKey.Passphrase := edtPublicPhrase.Text;
-      LbRSA1.PublicKey.StoreToStream(FS);
+      FActiveKey.StoreToStream(FS, StringToUTF8(edtPassPhrase.Text));
     finally
       FS.Free;
       Screen.Cursor := crDefault;
@@ -132,55 +138,60 @@ begin
   end;
 end;
 
-procedure TForm1.btnLoadPrivateClick(Sender: TObject);
-var
-  FS : TFileStream;
+procedure TlbRSAKeysForm.cmbKeySizeChange(Sender: TObject);
 begin
-  if OpenDialog1.Execute then begin
-    FS := TFileStream.Create(OpenDialog1.FileName, fmOpenRead);
-    Screen.Cursor := crHourGlass;
-    try
-      LbRSA1.PrivateKey.Passphrase := edtPrivatePhrase.Text;
-      LbRSA1.PrivateKey.LoadFromStream(FS);
-      edtPrivateE.Text := LbRSA1.PrivateKey.ExponentAsString;
-      edtPrivateM.Text := LbRSA1.PrivateKey.ModulusAsString;
-    finally
-      FS.Free;
-      Screen.Cursor := crDefault;
+  SetKeySize(TLbAsymKeySize(cmbKeySize.ItemIndex));
+end;
+
+procedure TlbRSAKeysForm.SetKeySize(const AValue: TLbAsymKeySize);
+begin
+  if (kpRSA.KeySize <> AValue) then
+  begin
+    if (kpRSA.PublicKey.KeySize <> AValue) then
+    begin
+      kpRSA.PublicKey.Clear;
     end;
+
+    if (kpRSA.PrivateKey.KeySize <> AValue) then
+    begin
+      kpRSA.PrivateKey.Clear;
+    end;
+
+    kpRSA.KeySize := AValue;
+    UpdateControls;
   end;
 end;
 
-procedure TForm1.btnSavePrivateClick(Sender: TObject);
-var
-  FS : TFileStream;
+procedure TlbRSAKeysForm.UpdateControls;
 begin
-  if SaveDialog1.Execute then begin
-    FS := TFileStream.Create(SaveDialog1.FileName, fmCreate);
-    Screen.Cursor := crHourGlass;
-    try
-      LbRSA1.PrivateKey.Passphrase := edtPrivatePhrase.Text;
-      LbRSA1.PrivateKey.StoreToStream(FS);
-    finally
-      FS.Free;
-      Screen.Cursor := crDefault;
-    end;
+  edtExponent.Text := FActiveKey.ExponentAsString;
+  mmoModulus.Text := FActiveKey.ModulusAsString;
+  if (FActiveKey.Exponent.Size > 0) and (FActiveKey.Modulus.Size > 0) then
+  begin
+    mmoBase64Encoded.Text := UTF8ToString(FActiveKey.Base64EncodedText);
+  end
+  else
+  begin
+    mmoBase64Encoded.Text := '';
   end;
+
+  cmbKeySize.ItemIndex := ord(FActiveKey.KeySize);
 end;
 
-procedure TForm1.btnClearClick(Sender: TObject);
+procedure TlbRSAKeysForm.tbcKeyVisibilityChange(Sender: TObject);
 begin
-  LbRSA1.PrivateKey.Clear;
-  LbRSA1.PublicKey.Clear;
-  edtPrivateE.Text := '';
-  edtPrivateM.Text := '';
-  edtPublicE.Text := '';
-  edtPublicM.Text := '';
-end;
+  if (tbcKeyVisibility.TabIndex = 0) then
+  begin
+    FActiveKey := kpRSA.PublicKey;
+  end
+  else
+  begin
+    FActiveKey := kpRSA.PrivateKey;
+  end;
 
-procedure TForm1.FormCreate(Sender: TObject);
-begin
-  cbxKeySize.ItemIndex := Ord(LbRSA1.KeySize);
+  UpdateControls;
 end;
 
 end.
+
+

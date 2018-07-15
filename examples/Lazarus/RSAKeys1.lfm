@@ -1,0 +1,239 @@
+object lbRSAKeysForm: TlbRSAKeysForm
+  Left = 258
+  Height = 420
+  Top = 200
+  Width = 650
+  Caption = 'RSAKeys - Public/private key manager (using TLbRSA component)'
+  ClientHeight = 420
+  ClientWidth = 650
+  Color = clBtnFace
+  Constraints.MaxHeight = 420
+  Constraints.MinHeight = 420
+  Constraints.MinWidth = 650
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  LCLVersion = '1.6.4.0'
+  object sbrVerify: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 397
+    Width = 650
+    Panels = <>
+  end
+  object pnlPersistKeys: TPanel
+    Left = 0
+    Height = 397
+    Top = 0
+    Width = 650
+    Align = alClient
+    BevelOuter = bvNone
+    BorderWidth = 10
+    ClientHeight = 397
+    ClientWidth = 650
+    TabOrder = 1
+    object grpPersistKeys: TGroupBox
+      Left = 10
+      Height = 377
+      Top = 10
+      Width = 630
+      Align = alClient
+      Caption = ' Key Pair'
+      ClientHeight = 359
+      ClientWidth = 626
+      TabOrder = 0
+      object pnlKeys: TPanel
+        Left = 0
+        Height = 309
+        Top = 50
+        Width = 626
+        Align = alClient
+        BevelOuter = bvNone
+        BorderWidth = 10
+        ClientHeight = 309
+        ClientWidth = 626
+        TabOrder = 0
+        object tbcKeyVisibility: TTabControl
+          Left = 10
+          Height = 289
+          Top = 10
+          Width = 606
+          OnChange = tbcKeyVisibilityChange
+          Style = tsFlatButtons
+          TabIndex = 0
+          Tabs.Strings = (
+            'Public'
+            'Private'
+          )
+          Align = alClient
+          TabOrder = 0
+          object lblExponent: TLabel
+            Left = 23
+            Height = 13
+            Top = 46
+            Width = 45
+            Caption = 'Exponent'
+            ParentColor = False
+          end
+          object lblPassPhrase: TLabel
+            Left = 275
+            Height = 13
+            Top = 240
+            Width = 59
+            Caption = 'Pass Phrase'
+            ParentColor = False
+          end
+          object lblBase64Encoded: TLabel
+            Left = 23
+            Height = 40
+            Top = 160
+            Width = 49
+            AutoSize = False
+            Caption = 'Base64 Encoded Text'
+            ParentColor = False
+            WordWrap = True
+          end
+          object lblModulus: TLabel
+            Left = 28
+            Height = 13
+            Top = 90
+            Width = 40
+            Caption = 'Modulus'
+            ParentColor = False
+          end
+          object edtExponent: TEdit
+            Left = 75
+            Height = 21
+            Top = 43
+            Width = 510
+            Anchors = [akTop, akLeft, akRight]
+            TabOrder = 0
+          end
+          object btnLoad: TButton
+            Left = 28
+            Height = 25
+            Top = 232
+            Width = 105
+            Caption = 'Load ASN.1 set'
+            OnClick = btnLoadClick
+            TabOrder = 1
+          end
+          object btnSave: TButton
+            Left = 139
+            Height = 25
+            Top = 231
+            Width = 105
+            Caption = 'Save ASN.1 set'
+            OnClick = btnSaveClick
+            TabOrder = 2
+          end
+          object edtPassPhrase: TEdit
+            Left = 340
+            Height = 21
+            Top = 236
+            Width = 245
+            Anchors = [akTop, akLeft, akRight]
+            TabOrder = 3
+          end
+          object mmoBase64Encoded: TMemo
+            Left = 75
+            Height = 81
+            Top = 136
+            Width = 510
+            Anchors = [akTop, akLeft, akRight]
+            ReadOnly = True
+            TabOrder = 4
+          end
+          object mmoModulus: TMemo
+            Left = 75
+            Height = 60
+            Top = 70
+            Width = 510
+            Anchors = [akTop, akLeft, akRight]
+            ReadOnly = True
+            TabOrder = 5
+          end
+        end
+      end
+      object pnlKeySize: TPanel
+        Left = 0
+        Height = 50
+        Top = 0
+        Width = 626
+        Align = alTop
+        BevelOuter = bvNone
+        BorderWidth = 10
+        ClientHeight = 50
+        ClientWidth = 626
+        TabOrder = 1
+        object lblKeySize: TLabel
+          Left = 57
+          Height = 13
+          Top = 15
+          Width = 41
+          Caption = 'Key Size'
+          ParentColor = False
+        end
+        object lblIterations: TLabel
+          Left = 319
+          Height = 13
+          Top = 15
+          Width = 91
+          Alignment = taRightJustify
+          Caption = 'Prime test iterations'
+          ParentColor = False
+          WordWrap = True
+        end
+        object cmbKeySize: TComboBox
+          Left = 104
+          Height = 21
+          Top = 10
+          Width = 100
+          Constraints.MinWidth = 100
+          ItemHeight = 13
+          Items.Strings = (
+            '128'
+            '256'
+            '512'
+            '768'
+            '1024'
+          )
+          OnChange = cmbKeySizeChange
+          Style = csDropDownList
+          TabOrder = 0
+        end
+        object edtIterations: TEdit
+          Left = 416
+          Height = 21
+          Top = 10
+          Width = 33
+          TabOrder = 1
+          Text = '20'
+        end
+        object btnCreateKeys: TButton
+          Left = 472
+          Height = 25
+          Top = 10
+          Width = 97
+          Caption = 'Generate '
+          OnClick = btnCreateKeysClick
+          TabOrder = 2
+        end
+      end
+    end
+  end
+  object dlgSave: TSaveDialog
+    left = 528
+    top = 128
+  end
+  object dlgOpen: TOpenDialog
+    left = 464
+    top = 128
+  end
+  object kpRSA: TLbRSA
+    PrimeTestIterations = 20
+    KeySize = aks128
+    left = 288
+    top = 40
+  end
+end

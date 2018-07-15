@@ -38,9 +38,6 @@ unit LbClass;
 interface
 
 uses
-{$IFDEF MSWINDOWS}
-  Windows,
-{$ENDIF}
   Classes,
   SysUtils,
   LbCipher;
@@ -73,14 +70,10 @@ type
 
     procedure DecryptFile(const InFile, OutFile : string); virtual; abstract;
     procedure DecryptStream(InStream , OutStream : TStream); virtual; abstract;
-    function  DecryptString(const InString : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF}) : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF};
-    function  DecryptStringA(const InString : AnsiString) : AnsiString; virtual; abstract;
-    {$IFDEF UNICODE}function  DecryptStringW(const InString : UnicodeString) : UnicodeString; virtual; abstract;{$ENDIF}
+    function  DecryptString(const InString : RawByteString) : RawByteString; virtual; abstract;
     procedure EncryptFile(const InFile, OutFile : string); virtual; abstract;
     procedure EncryptStream(InStream, OutStream : TStream); virtual; abstract;
-    function  EncryptString(const InString : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF}) : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF};
-    function  EncryptStringA(const InString: AnsiString): AnsiString; virtual; abstract;
-    {$IFDEF UNICODE}function  EncryptStringW(const InString: UnicodeString): UnicodeString; virtual; abstract;{$ENDIF}
+    function  EncryptString(const InString : RawByteString) : RawByteString; virtual; abstract;
 
     function OutBufSizeNeeded(InBufSize : Cardinal) : Cardinal; virtual; abstract;
   end;
@@ -95,11 +88,7 @@ type
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
 
-    procedure GenerateKey(const Passphrase : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-    procedure GenerateKeyA(const Passphrase : AnsiString); virtual; abstract;
-    {$IFDEF UNICODE}
-    procedure GenerateKeyW(const Passphrase : UnicodeString); virtual; abstract;
-    {$ENDIF}
+    procedure GenerateKey(const Passphrase : RawByteString); virtual; abstract;
     procedure GenerateRandomKey; virtual; abstract;
   public {properties}
     property CipherMode : TLbCipherMode
@@ -118,20 +107,13 @@ type
 
     procedure DecryptFile(const InFile, OutFile : string); override;
     procedure DecryptStream(InStream , OutStream : TStream); override;
-    function  DecryptStringA(const InString : AnsiString) : AnsiString; override;
-    {$IFDEF UNICODE}function  DecryptStringW(const InString : UnicodeString) : UnicodeString; override;{$ENDIF}
+    function  DecryptString(const InString : RawByteString) : RawByteString; override;
 
     procedure EncryptFile(const InFile, OutFile : string); override;
     procedure EncryptStream(InStream, OutStream : TStream); override;
-    function  EncryptStringA(const InString : AnsiString) : AnsiString; override;
-    {$IFDEF UNICODE}
-    function  EncryptStringW(const InString : UnicodeString) : UnicodeString; override;
-    {$ENDIF}
+    function  EncryptString(const InString : RawByteString) : RawByteString; override;
 
-    procedure GenerateKeyA(const Passphrase : AnsiString); override;
-    {$IFDEF UNICODE}
-    procedure GenerateKeyW(const Passphrase : UnicodeString); override;
-    {$ENDIF}
+    procedure GenerateKey(const Passphrase : RawByteString); override;
     procedure GenerateRandomKey; override;
 
     procedure GetKey(var Key : TKey128);
@@ -155,22 +137,13 @@ type
 
     procedure DecryptFile(const InFile, OutFile : string); override;
     procedure DecryptStream(InStream , OutStream : TStream); override;
-    function  DecryptStringA(const InString : AnsiString) : AnsiString; override;
-    {$IFDEF UNICODE}
-    function  DecryptStringW(const InString : UnicodeString) : UnicodeString; override;
-    {$ENDIF}
+    function  DecryptString(const InString : RawByteString) : RawByteString; override;
 
     procedure EncryptFile(const InFile, OutFile : string); override;
     procedure EncryptStream(InStream, OutStream : TStream); override;
-    function  EncryptStringA(const InString : AnsiString) : AnsiString; override;
-    {$IFDEF UNICODE}
-    function  EncryptStringW(const InString : UnicodeString) : UnicodeString; override;
-    {$ENDIF}
+    function  EncryptString(const InString : RawByteString) : RawByteString; override;
 
-    procedure GenerateKeyA(const Passphrase : AnsiString); override;
-    {$IFDEF UNICODE}
-    procedure GenerateKeyW(const Passphrase : UnicodeString); override;
-    {$ENDIF}
+    procedure GenerateKey(const Passphrase : RawByteString); override;
     procedure GenerateRandomKey; override;
 
     procedure GetKey(var Key : TKey64);
@@ -194,22 +167,13 @@ type
 
     procedure DecryptFile(const InFile, OutFile : string); override;
     procedure DecryptStream(InStream , OutStream : TStream); override;
-    function  DecryptStringA(const InString : AnsiString) : AnsiString; override;
-    {$IFDEF UNICODE}
-    function  DecryptStringW(const InString : UnicodeString) : UnicodeString; override;
-    {$ENDIF}
+    function  DecryptString(const InString : RawByteString) : RawByteString; override;
 
     procedure EncryptFile(const InFile, OutFile : string); override;
     procedure EncryptStream(InStream, OutStream : TStream); override;
-    function  EncryptStringA(const InString : AnsiString) : AnsiString; override;
-    {$IFDEF UNICODE}
-    function  EncryptStringW(const InString : UnicodeString) : UnicodeString; override;
-    {$ENDIF}
+    function  EncryptString(const InString : RawByteString) : RawByteString; override;
 
-    procedure GenerateKeyA(const Passphrase : AnsiString); override;
-    {$IFDEF UNICODE}
-    procedure GenerateKeyW(const Passphrase : UnicodeString); override;
-    {$ENDIF}
+    procedure GenerateKey(const Passphrase : RawByteString); override;
     procedure GenerateRandomKey; override;
 
     procedure GetKey(var Key : TKey128);
@@ -239,22 +203,13 @@ type
 
     procedure DecryptFile(const InFile, OutFile : string); override;
     procedure DecryptStream(InStream , OutStream : TStream); override;
-    function  DecryptStringA(const InString : AnsiString) : AnsiString; override;
-    {$IFDEF UNICODE}
-    function  DecryptStringW(const InString : UnicodeString) : UnicodeString; override;
-    {$ENDIF}
+    function  DecryptString(const InString : RawByteString) : RawByteString; override;
 
     procedure EncryptFile(const InFile, OutFile : string); override;
     procedure EncryptStream(InStream, OutStream : TStream); override;
-    function  EncryptStringA(const InString : AnsiString) : AnsiString; override;
-    {$IFDEF UNICODE}
-    function  EncryptStringW(const InString : UnicodeString) : UnicodeString; override;
-    {$ENDIF}
+    function  EncryptString(const InString : RawByteString) : RawByteString; override;
 
-    procedure GenerateKeyA(const Passphrase : AnsiString); override;
-    {$IFDEF UNICODE}
-    procedure GenerateKeyW(const Passphrase : UnicodeString); override;
-    {$ENDIF}
+    procedure GenerateKey(const Passphrase : RawByteString); override;
     procedure GenerateRandomKey; override;
 
     procedure GetKey(var Key);
@@ -275,16 +230,10 @@ type
     protected {private}
       FBuf : array[0..1023] of Byte;
     public {methods}
-      constructor Create(AOwner : TComponent); override;
-      destructor Destroy; override;
       procedure HashBuffer(const Buf; BufSize : Cardinal); virtual; abstract;
       procedure HashFile(const AFileName : string); virtual; abstract;
       procedure HashStream(AStream: TStream); virtual; abstract;
-      procedure HashString(const AStr : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-      procedure HashStringA(const AStr : AnsiString); virtual; abstract;
-      {$IFDEF UNICODE}
-      procedure HashStringW(const AStr : UnicodeString); virtual; abstract;
-      {$ENDIF}
+      procedure HashString(const AStr : RawByteString); virtual; abstract;
     end;
 
 
@@ -302,10 +251,7 @@ type
       procedure HashBuffer(const Buf; BufSize : Cardinal); override;
       procedure HashFile(const AFileName : string); override;
       procedure HashStream(AStream: TStream); override;
-      procedure HashStringA(const AStr : AnsiString); override;
-      {$IFDEF UNICODE}
-      procedure HashStringW(const AStr : UnicodeString); override;
-      {$ENDIF}
+      procedure HashString(const AStr : RawByteString); override;
     end;
 
 
@@ -323,10 +269,7 @@ type
       procedure HashBuffer(const Buf; BufSize : Cardinal); override;
       procedure HashFile(const AFileName : string); override;
       procedure HashStream(AStream: TStream); override;
-      procedure HashStringA(const AStr : AnsiString); override;
-      {$IFDEF UNICODE}
-      procedure HashStringW(const AStr : UnicodeString); override;
-      {$ENDIF}
+      procedure HashString(const AStr : RawByteString); override;
     end;
 
 
@@ -465,14 +408,6 @@ begin
     OutS.Free;
   end;
 end;
-function TLbCipher.DecryptString(const InString: {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF}): {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF};
-begin
-  {$IFDEF LOCKBOXUNICODE}
-  Result := DecryptStringW(InString);
-  {$ELSE}
-  Result := DecryptStringA(InString);
-  {$ENDIF}
-end;
 
 { -------------------------------------------------------------------------- }
 function TLbCipher.EncryptBuffer(const InBuf; InBufSize : Cardinal; var OutBuf) : Cardinal;
@@ -496,15 +431,6 @@ begin
 end;
 
 
-function TLbCipher.EncryptString(const InString : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF}) : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF};
-begin
-  {$IFDEF LOCKBOXUNICODE}
-  Result := EncryptStringW(InString);
-  {$ELSE}
-  Result := EncryptStringA(InString);
-  {$ENDIF}
-end;
-
 { == TLbSymmetricCipher ==================================================== }
 constructor TLbSymmetricCipher.Create(AOwner : TComponent);
 begin
@@ -514,16 +440,6 @@ end;
 destructor TLbSymmetricCipher.Destroy;
 begin
   inherited Destroy;
-end;
-
-
-procedure TLbSymmetricCipher.GenerateKey(const Passphrase: {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-begin
-  {$IFDEF LOCKBOXUNICODE}
-  GenerateKeyW(Passphrase);
-  {$ELSE}
-  GenerateKeyA(Passphrase);
-  {$ENDIF}
 end;
 
 { == TLbBlowfish =========================================================== }
@@ -553,23 +469,13 @@ begin
   end;
 end;
 { -------------------------------------------------------------------------- }
-function TLbBlowfish.DecryptStringA(const InString : AnsiString) : AnsiString;
+function TLbBlowfish.DecryptString(const InString : RawByteString) : RawByteString;
 begin
   case CipherMode of
-    cmECB : Result := BFEncryptStringExA(InString, FKey, False);
-    cmCBC : Result := BFEncryptStringCBCExA(InString, FKey, False);
+    cmECB : Result := BFEncryptStringEx(InString, FKey, False);
+    cmCBC : Result := BFEncryptStringCBCEx(InString, FKey, False);
   end;
 end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-function TLbBlowfish.DecryptStringW(const InString : UnicodeString) : UnicodeString;
-begin
-  case CipherMode of
-    cmECB : Result := BFEncryptStringExW(InString, FKey, False);
-    cmCBC : Result := BFEncryptStringCBCExW(InString, FKey, False);
-  end;
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 procedure TLbBlowfish.EncryptFile(const InFile, OutFile : string);
 begin
@@ -587,35 +493,18 @@ begin
   end;
 end;
 { -------------------------------------------------------------------------- }
-function TLbBlowfish.EncryptStringA(const InString: AnsiString): AnsiString;
+function TLbBlowfish.EncryptString(const InString: RawByteString): RawByteString;
 begin
   case CipherMode of
-    cmECB : Result := BFEncryptStringExA(InString, FKey, True);
-    cmCBC : Result := BFEncryptStringCBCExA(InString, FKey, True);
+    cmECB : Result := BFEncryptStringEx(InString, FKey, True);
+    cmCBC : Result := BFEncryptStringCBCEx(InString, FKey, True);
   end;
 end;
 { -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-function TLbBlowfish.EncryptStringW(const InString : UnicodeString) : UnicodeString;
+procedure TLbBlowfish.GenerateKey(const Passphrase : RawByteString);
 begin
-  case CipherMode of
-    cmECB : Result := BFEncryptStringExW(InString, FKey, True);
-    cmCBC : Result := BFEncryptStringCBCExW(InString, FKey, True);
-  end;
+  GenerateLMDKey(FKey, SizeOf(FKey), Passphrase);
 end;
-{$ENDIF}
-{ -------------------------------------------------------------------------- }
-procedure TLbBlowfish.GenerateKeyA(const Passphrase : AnsiString);
-begin
-  GenerateLMDKeyA(FKey, SizeOf(FKey), Passphrase);
-end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-procedure TLbBlowfish.GenerateKeyW(const Passphrase : UnicodeString);
-begin
-  GenerateLMDKeyW(FKey, SizeOf(FKey), Passphrase);
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 procedure TLbBlowfish.GenerateRandomKey;
 begin
@@ -669,23 +558,13 @@ begin
   end;
 end;
 { -------------------------------------------------------------------------- }
-function TLbDES.DecryptStringA(const InString : AnsiString) : AnsiString;
+function TLbDES.DecryptString(const InString : RawByteString) : RawByteString;
 begin
   case CipherMode of
-    cmECB : Result := DESEncryptStringExA(InString, FKey, False);
-    cmCBC : Result := DESEncryptStringCBCExA(InString, FKey, False);
+    cmECB : Result := DESEncryptStringEx(InString, FKey, False);
+    cmCBC : Result := DESEncryptStringCBCEx(InString, FKey, False);
   end;
 end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-function TLbDES.DecryptStringW(const InString : UnicodeString) : UnicodeString;
-begin
-  case CipherMode of
-    cmECB : Result := DESEncryptStringExW(InString, FKey, False);
-    cmCBC : Result := DESEncryptStringCBCExW(InString, FKey, False);
-  end;
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 procedure TLbDES.EncryptFile(const InFile, OutFile : string);
 begin
@@ -703,35 +582,18 @@ begin
   end;
 end;
 { -------------------------------------------------------------------------- }
-function TLbDES.EncryptStringA(const InString : AnsiString) : AnsiString;
+function TLbDES.EncryptString(const InString : RawByteString) : RawByteString;
 begin
   case CipherMode of
-    cmECB : Result := DESEncryptStringExA(InString, FKey, True);
-    cmCBC : Result := DESEncryptStringCBCExA(InString, FKey, True);
+    cmECB : Result := DESEncryptStringEx(InString, FKey, True);
+    cmCBC : Result := DESEncryptStringCBCEx(InString, FKey, True);
   end;
 end;
 { -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-function TLbDES.EncryptStringW(const InString : UnicodeString) : UnicodeString;
+procedure TLbDES.GenerateKey(const Passphrase : RawByteString);
 begin
-  case CipherMode of
-    cmECB : Result := DESEncryptStringExW(InString, FKey, True);
-    cmCBC : Result := DESEncryptStringCBCExW(InString, FKey, True);
-  end;
+  GenerateLMDKey(FKey, SizeOf(FKey), Passphrase);
 end;
-{$ENDIF}
-{ -------------------------------------------------------------------------- }
-procedure TLbDES.GenerateKeyA(const Passphrase : AnsiString);
-begin
-  GenerateLMDKeyA(FKey, SizeOf(FKey), Passphrase);
-end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-procedure TLbDES.GenerateKeyW(const Passphrase : UnicodeString);
-begin
-  GenerateLMDKeyW(FKey, SizeOf(FKey), Passphrase);
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 procedure TLbDES.GenerateRandomKey;
 begin
@@ -785,23 +647,13 @@ begin
   end;
 end;
 { -------------------------------------------------------------------------- }
-function TLb3DES.DecryptStringA(const InString : AnsiString) : AnsiString;
+function TLb3DES.DecryptString(const InString : RawByteString) : RawByteString;
 begin
   case CipherMode of
-    cmECB : Result := TripleDESEncryptStringExA(InString, FKey, False);
-    cmCBC : Result := TripleDESEncryptStringCBCExA(InString, FKey, False);
+    cmECB : Result := TripleDESEncryptStringEx(InString, FKey, False);
+    cmCBC : Result := TripleDESEncryptStringCBCEx(InString, FKey, False);
   end;
 end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-function TLb3DES.DecryptStringW(const InString : UnicodeString) : UnicodeString;
-begin
-  case CipherMode of
-    cmECB : Result := TripleDESEncryptStringExW(InString, FKey, False);
-    cmCBC : Result := TripleDESEncryptStringCBCExW(InString, FKey, False);
-  end;
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 procedure TLb3DES.EncryptFile(const InFile, OutFile : string);
 begin
@@ -819,35 +671,18 @@ begin
   end;
 end;
 { -------------------------------------------------------------------------- }
-function TLb3DES.EncryptStringA(const InString : AnsiString) : AnsiString;
+function TLb3DES.EncryptString(const InString : RawByteString) : RawByteString;
 begin
   case CipherMode of
-    cmECB : Result := TripleDESEncryptStringExA(InString, FKey, True);
-    cmCBC : Result := TripleDESEncryptStringCBCExA(InString, FKey, True);
+    cmECB : Result := TripleDESEncryptStringEx(InString, FKey, True);
+    cmCBC : Result := TripleDESEncryptStringCBCEx(InString, FKey, True);
   end;
 end;
 { -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-function TLb3DES.EncryptStringW(const InString : UnicodeString) : UnicodeString;
+procedure TLb3DES.GenerateKey(const Passphrase : RawByteString);
 begin
-  case CipherMode of
-    cmECB : Result := TripleDESEncryptStringExW(InString, FKey, True);
-    cmCBC : Result := TripleDESEncryptStringCBCExW(InString, FKey, True);
-  end;
+  GenerateLMDKey(FKey, SizeOf(FKey), Passphrase);
 end;
-{$ENDIF}
-{ -------------------------------------------------------------------------- }
-procedure TLb3DES.GenerateKeyA(const Passphrase : AnsiString);
-begin
-  GenerateLMDKeyA(FKey, SizeOf(FKey), Passphrase);
-end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-procedure TLb3DES.GenerateKeyW(const Passphrase : UnicodeString);
-begin
-  GenerateLMDKeyW(FKey, SizeOf(FKey), Passphrase);
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 procedure TLb3DES.GenerateRandomKey;
 begin
@@ -902,23 +737,13 @@ begin
   end;
 end;
 { -------------------------------------------------------------------------- }
-function TLbRijndael.DecryptStringA(const InString : AnsiString) : AnsiString;
+function TLbRijndael.DecryptString(const InString : RawByteString) : RawByteString;
 begin
   case CipherMode of
-    cmECB : Result := RDLEncryptStringExA(InString, FKey, FKeySizeBytes, False);
-    cmCBC : Result := RDLEncryptStringCBCExA(InString, FKey, FKeySizeBytes, False);
+    cmECB : Result := RDLEncryptStringEx(InString, FKey, FKeySizeBytes, False);
+    cmCBC : Result := RDLEncryptStringCBCEx(InString, FKey, FKeySizeBytes, False);
   end;
 end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-function TLbRijndael.DecryptStringW(const InString : UnicodeString) : UnicodeString;
-begin
-  case CipherMode of
-    cmECB : Result := RDLEncryptStringExW(InString, FKey, FKeySizeBytes, False);
-    cmCBC : Result := RDLEncryptStringCBCExW(InString, FKey, FKeySizeBytes, False);
-  end;
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 procedure TLbRijndael.EncryptFile(const InFile, OutFile : string);
 begin
@@ -936,35 +761,18 @@ begin
   end;
 end;
 { -------------------------------------------------------------------------- }
-function TLbRijndael.EncryptStringA(const InString : AnsiString) : AnsiString;
+function TLbRijndael.EncryptString(const InString : RawByteString) : RawByteString;
 begin
   case CipherMode of
-    cmECB : Result := RDLEncryptStringExA(InString, FKey, FKeySizeBytes, True);
-    cmCBC : Result := RDLEncryptStringCBCExA(InString, FKey, FKeySizeBytes, True);
+    cmECB : Result := RDLEncryptStringEx(InString, FKey, FKeySizeBytes, True);
+    cmCBC : Result := RDLEncryptStringCBCEx(InString, FKey, FKeySizeBytes, True);
   end;
 end;
 { -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-function TLbRijndael.EncryptStringW(const InString : UnicodeString) : UnicodeString;
+procedure TLbRijndael.GenerateKey(const Passphrase : RawByteString);
 begin
-  case CipherMode of
-    cmECB : Result := RDLEncryptStringExW(InString, FKey, FKeySizeBytes, True);
-    cmCBC : Result := RDLEncryptStringCBCExW(InString, FKey, FKeySizeBytes, True);
-  end;
+  GenerateLMDKey(FKey, FKeySizeBytes, Passphrase);
 end;
-{$ENDIF}
-{ -------------------------------------------------------------------------- }
-procedure TLbRijndael.GenerateKeyA(const Passphrase : AnsiString);
-begin
-  GenerateLMDKeyA(FKey, FKeySizeBytes, Passphrase);
-end;
-{ -------------------------------------------------------------------------- }
-{$IFDEF UNICODE}
-procedure TLbRijndael.GenerateKeyW(const Passphrase : UnicodeString);
-begin
-  GenerateLMDKeyW(FKey, FKeySizeBytes, Passphrase);
-end;
-{$ENDIF}
 { -------------------------------------------------------------------------- }
 procedure TLbRijndael.GenerateRandomKey;
 begin
@@ -994,28 +802,6 @@ begin
   BlkSize := SizeOf(TRDLBlock);
   BlkCount := (InBufSize div BlkSize) + 1;
   Result := BlkCount * BlkSize;
-end;
-
-
-{ == TLbHash =============================================================== }
-constructor TLbHash.Create(AOwner : TComponent);
-begin
-  inherited Create(AOwner);
-end;
-{ -------------------------------------------------------------------------- }
-destructor TLbHash.Destroy;
-begin
-  inherited Destroy;
-end;
-
-
-procedure TLbHash.HashString(const AStr: {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-begin
-  {$IFDEF LOCKBOXUNICODE}
-  HashStringW(AStr);
-  {$ELSE}
-  HashStringA(AStr);
-  {$ENDIF}
 end;
 
 { == TLbMD5 ================================================================ }
@@ -1065,17 +851,10 @@ begin
   FinalizeMD5(Context, FDigest);
 end;
 { -------------------------------------------------------------------------- }
-procedure TLbMD5.HashStringA(const AStr : AnsiString);
+procedure TLbMD5.HashString(const AStr : RawByteString);
 begin
-  StringHashMD5A(FDigest, AStr);
+  StringHashMD5(FDigest, AStr);
 end;
-{$IFDEF UNICODE}
-procedure TLbMD5.HashStringW(const AStr : UnicodeString);
-begin
-  StringHashMD5W(FDigest, AStr);
-end;
-{$ENDIF}
-
 
 { == TLbSHA1 =============================================================== }
 constructor TLbSHA1.Create(AOwner : TComponent);
@@ -1124,17 +903,10 @@ begin
   FinalizeSHA1(Context, FDigest);
 end;
 { -------------------------------------------------------------------------- }
-procedure TLbSHA1.HashStringA(const AStr : AnsiString);
+procedure TLbSHA1.HashString(const AStr : RawByteString);
 begin
-  StringHashSHA1A(FDigest, AStr);
+  StringHashSHA1(FDigest, AStr);
 end;
-{$IFDEF UNICODE}
-procedure TLbSHA1.HashStringW(const AStr : UnicodeString);
-begin
-  StringHashSHA1W(FDigest, AStr);
-end;
-{$ENDIF}
-
 
 { == TLbSCStream =========================================================== }
 constructor TLbSCStream.Create(const Key; KeySize : Integer);

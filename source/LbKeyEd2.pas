@@ -31,38 +31,25 @@
 {$I LockBox.inc}
 {$UNDEF UsingCLX}
 unit LbKeyEd2;
-{$R *.dfm}
 
 interface
 
 uses
-{$IFDEF MSWINDOWS}
-  Windows,
-  Controls,
-  Forms,
-  Dialogs,
-  Graphics,
-  Buttons,
-  ExtCtrls,
-  StdCtrls,
-  ComCtrls,
-  Tabnotbk,
-{$ENDIF}
-
-{$IFDEF Version6}
-  DesignIntf,
-  DesignEditors,
-{$ELSE}
-  DsgnIntf,
-{$ENDIF}
-
 {$IFDEF UsingCLX}
-  QForms,
-  QGraphics,
-  QControls,
-  QStdCtrls,
-  QExtCtrls,
-  QComCtrls,
+  QForms, QGraphics, QControls, QStdCtrls, QExtCtrls, QComCtrls,
+{$ELSE}
+  Forms, Controls, Graphics, Buttons, ExtCtrls, StdCtrls, ComCtrls,
+{$ENDIF}
+
+{$IFDEF FPC}
+  ComponentEditors,
+{$ELSE}
+  {$IFDEF Version6}
+    DesignIntf,
+    DesignEditors,
+  {$ELSE}
+    DsgnIntf,
+  {$ENDIF}
 {$ENDIF}
   SysUtils,
   Classes;
@@ -95,20 +82,23 @@ type
   end;
 
 type
-  TLbRSAKeyEditor = class(TDefaultEditor)
+  TLbRSAKeyEditor = class({$IFDEF FPC}TDefaultComponentEditor{$ELSE}TDefaultEditor{$ENDIF})
   public
-    procedure ExecuteVerb(Index : Integer);
-      override;
-    function GetVerb(Index : Integer) : string;
-      override;
-    function GetVerbCount : Integer;
-      override;
+    procedure ExecuteVerb(Index : Integer); override;
+    function GetVerb(Index : Integer) : string; override;
+    function GetVerbCount : Integer; override;
   end;
 
 implementation
 
+{$IFDEF FPC}
+  {$R *.lfm}
+{$ELSE}
+  {$R *.dfm}
+{$ENDIF}
+
 uses
-  LbRSA, LbAsym, LbCipher, LbUtils;
+  LbRSA, LbAsym;
 
 { == TLbRSAKeyKeyEditor ==================================================== }
 procedure TLbRSAKeyEditor.ExecuteVerb(Index : Integer);

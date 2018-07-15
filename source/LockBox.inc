@@ -30,97 +30,99 @@
 
 {Conditional defines that affect compilation}
 
-{$IFDEF UNICODE}
-  {.$DEFINE LOCKBOXUNICODE}   // If set, all string functions will default to UnicodeString
-                              // (this could be problematic for backward compatibility
-{$ENDIF}
-
-{$IFNDEF FPC}
-
-{$IFDEF VER80}                { Delphi 1 }
-  !!! LockBox 2.0 does not support Delphi 1
-{$ENDIF}
-
-{$IFDEF VER93}                { C++ Builder 1 }
-  !!! LockBox 2.0 does not support C++Builder 1
-{$ENDIF}
-
-{$IFNDEF VER90}               { Delphi 2 }
-{$DEFINE VERSION3}            { for Delphi 3.0 or BCB 3.0 or higher }
-{$ENDIF}
-
-{$IFDEF VER110}               { C++ Builder 3 }
- {$DEFINE CBuilder}
- {$ObjExportAll On}
-{$ENDIF}
-
-{$IFDEF VER125}               { C++ Builder 4 }
- {$DEFINE CBuilder}
- {$ObjExportAll On}
-{$ENDIF}
-
-{$IFDEF VER130}               { Delphi 5 & C++ Builder 5 }
- {$IFDEF BCB}                 { C++ Builder 5 }
-  {$DEFINE CBuilder}
-  {$ObjExportAll On}
- {$ENDIF}
-{$ENDIF}
-
-{$IFDEF VERSION3}
- {$IFNDEF VER100}             { Delphi 3 }
-  {$IFNDEF VER110}            { BCB 3 }
-   {$DEFINE VERSION4}         { Delphi 4.0 or higher }
+{$IFDEF FPC}
+  {$DEFINE NO_ASSEMBLY}
+{$ELSE}
+  {$IFNDEF UNICODE}
+    RawByteString = type AnsiString;
   {$ENDIF}
- {$ENDIF}
-{$ENDIF}
 
-{$IFDEF VERSION4}
- {$IFNDEF VER120}             { Delphi 4 }
-  {$IFNDEF VER125}            { BCB 4 }
-   {$DEFINE VERSION5}         { Delphi 5.0 or higher }
+  {$IFDEF VER80}                { Delphi 1 }
+    !!! LockBox 2.0 does not support Delphi 1
   {$ENDIF}
- {$ENDIF}
-{$ENDIF}
 
-{$IFDEF VERSION3}
- {$IFNDEF VERSION4}
-  {$DEFINE VERSION3ONLY}
- {$ENDIF}
-{$ENDIF}
-
-{$IFDEF VERSION3}
-  {$IFDEF VER140}
-     {$DEFINE VERSION6}         { Delphi 6.0 or higher }
-     {$DEFINE USEDESIGNIDE}
+  {$IFDEF VER93}                { C++ Builder 1 }
+    !!! LockBox 2.0 does not support C++Builder 1
   {$ENDIF}
-{$ENDIF}
 
-{$IFDEF VER150}               { Delphi 7 }
-  {$DEFINE VERSION6}          { Version 6 or greater }
-  {$DEFINE VERSION7}
- {$IFDEF BCB}
-  {$DEFINE CBuilder}
-  {$ObjExportAll On}
- {$ENDIF}
-{$ENDIF}
+  {$IFNDEF VER90}               { Delphi 2 }
+  {$DEFINE VERSION3}            { for Delphi 3.0 or BCB 3.0 or higher }
+  {$ENDIF}
 
-{$IFDEF conditionalexpressions} { Delphi 7+ }
-  {$DEFINE VERSION6}          { Version 6 or greater }
-  {$DEFINE VERSION7}
- {$IFDEF BCB}
-  {$DEFINE CBuilder}
-  {$ObjExportAll On}
- {$ENDIF}
-{$ENDIF}
+  {$IFDEF VER110}               { C++ Builder 3 }
+   {$DEFINE CBuilder}
+   {$ObjExportAll On}
+  {$ENDIF}
+
+  {$IFDEF VER125}               { C++ Builder 4 }
+   {$DEFINE CBuilder}
+   {$ObjExportAll On}
+  {$ENDIF}
+
+  {$IFDEF VER130}               { Delphi 5 & C++ Builder 5 }
+   {$IFDEF BCB}                 { C++ Builder 5 }
+    {$DEFINE CBuilder}
+    {$ObjExportAll On}
+   {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF VERSION3}
+   {$IFNDEF VER100}             { Delphi 3 }
+    {$IFNDEF VER110}            { BCB 3 }
+     {$DEFINE VERSION4}         { Delphi 4.0 or higher }
+    {$ENDIF}
+   {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF VERSION4}
+   {$IFNDEF VER120}             { Delphi 4 }
+    {$IFNDEF VER125}            { BCB 4 }
+     {$DEFINE VERSION5}         { Delphi 5.0 or higher }
+    {$ENDIF}
+   {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF VERSION3}
+   {$IFNDEF VERSION4}
+    {$DEFINE VERSION3ONLY}
+   {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF VERSION3}
+    {$IFDEF VER140}
+       {$DEFINE VERSION6}         { Delphi 6.0 or higher }
+       {$DEFINE USEDESIGNIDE}
+    {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF VER150}               { Delphi 7 }
+    {$DEFINE VERSION6}          { Version 6 or greater }
+    {$DEFINE VERSION7}
+   {$IFDEF BCB}
+    {$DEFINE CBuilder}
+    {$ObjExportAll On}
+   {$ENDIF}
+  {$ENDIF}
+
+  {$IFDEF conditionalexpressions} { Delphi 7+ }
+    {$DEFINE VERSION6}          { Version 6 or greater }
+    {$DEFINE VERSION7}
+   {$IFDEF BCB}
+    {$DEFINE CBuilder}
+    {$ObjExportAll On}
+   {$ENDIF}
+  {$ENDIF}
+
+  { determine whether CLX is used, should always be on Linux }
+  {$IFDEF LINUX}
+    {$DEFINE UsingCLX }
+  {$ENDIF LINUX}
+
+  {$IFDEF CPUX64}
+    {$DEFINE NO_ASSEMBLY}
+  {$ENDIF}
 
 {$ENDIF}  //  If not FPC
-
-{ determine whether CLX is used, should always be on Linux }
-{$IFDEF LINUX}
-  {$IFNDEF FPC}
-    {$DEFINE UsingCLX }
-  {$ENDIF}
-{$ENDIF LINUX}
 
 {$IFNDEF MSWINDOWS}
 {$IFDEF VERSION3}
@@ -134,16 +136,6 @@
   {$UNDEF MSWINDOWS}
   {$DEFINE HAS_ARC4RANDOM}
 {$ENDIF}
-
-{$IFDEF FPC}
-  {$MODE DELPHI}
-  {$DEFINE NO_ASSEMBLY}
-{$ENDIF}
-
-{$IFDEF CPUX64}
-  {$DEFINE NO_ASSEMBLY}
-{$ENDIF}
-
 
 
 {$A+} {Word Align Data}

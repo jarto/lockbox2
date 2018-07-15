@@ -19,7 +19,7 @@
  * Portions created by the Initial Developer are Copyright (C) 1997-2002
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * ***** END LICENSE BLOCK ***** *)
 {*********************************************************}
@@ -57,9 +57,11 @@ type
 { TLbAsymmetricKey }
 type
   TLbAsymmetricKey = class
+  private
+    function GetBase64EncodedText : RawByteString;
+    procedure SetBase64EncodedText(const Value: RawByteString);
     protected {private}
       FKeySize  : TLbAsymKeySize;
-      FPassphrase : AnsiString;
       procedure SetKeySize(Value : TLbAsymKeySize); virtual;
 {!!.06}
       procedure MovePtr(var Ptr : PByte; var Max : Integer );
@@ -67,7 +69,7 @@ type
       function GetASN1StructLen( var input : pByte; var len : Integer ) : Integer;
       function GetASN1StructNum ( var input : pByte; var len : Integer ) : Integer;
       procedure CreateASN1(var Buf; var BufLen : Integer; Tag : Byte);
-      procedure ParseASN1(var input : pByte; var length : Integer; biValue : TLbBigInt);
+      function ParseASN1(var input : pByte; var length : Integer; biValue : TLbBigInt) : Integer;
       function EncodeASN1(biValue : TLbBigInt; var pBuf : PByteArray; var MaxLen : Integer) : Integer;
       function  CreateASNKey(Input : pByteArray; Length : Integer) : Integer; virtual; abstract;
       function ParseASNKey(Input : pByte; Length : Integer) : boolean; virtual; abstract;
@@ -75,20 +77,17 @@ type
 
     public {methods}
       constructor Create(aKeySize : TLbAsymKeySize); virtual;
-      destructor Destroy; override;
       procedure Assign(aKey : TLbAsymmetricKey); virtual;
 {!!.06}
-      procedure LoadFromStream(aStream : TStream); virtual; { as ASN.1 set }
-      procedure StoreToStream(aStream : TStream); virtual; { as ASN.1 set }
-      procedure LoadFromFile(aFileName : string); virtual; { as ASN.1 set }
-      procedure StoreToFile(aFileName : string); virtual; { as ASN.1 set }
+      procedure LoadFromStream(aStream : TStream; const aPassPhrase : RawByteString = ''); virtual; { as ASN.1 set }
+      procedure StoreToStream(aStream : TStream; const aPassPhrase : RawByteString = ''); virtual; { as ASN.1 set }
+      procedure LoadFromFile(aFileName : string; const aPassPhrase : RawByteString = ''); { as ASN.1 set }
+      procedure StoreToFile(aFileName : string; const aPassPhrase : RawByteString = ''); { as ASN.1 set }
 {!!.06}
 
     public {properties}
-      property KeySize : TLbAsymKeySize
-        read FKeySize write SetKeySize;
-      property Passphrase : AnsiString
-        read FPassphrase write FPassphrase;
+      property Base64EncodedText : RawByteString read GetBase64EncodedText write SetBase64EncodedText;
+      property KeySize : TLbAsymKeySize read FKeySize write SetKeySize;
   end;
 
 
@@ -127,20 +126,12 @@ type
       procedure SignBuffer(const Buf; BufLen : Cardinal); virtual; abstract;
       procedure SignFile(const AFileName : string); virtual; abstract;
       procedure SignStream(AStream : TStream); virtual; abstract;
-      procedure SignString(const AStr : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-      procedure SignStringA(const AStr : AnsiString); virtual; abstract;
-      {$IFDEF UNICODE}
-      procedure SignStringW(const AStr : UnicodeString); virtual; abstract;
-      {$ENDIF}
+      procedure SignString(const AStr : RawByteString); virtual; abstract;
 
       function  VerifyBuffer(const Buf; BufLen : Cardinal) : Boolean; virtual; abstract;
       function  VerifyFile(const AFileName : string) : Boolean; virtual; abstract;
       function  VerifyStream(AStream : TStream) : Boolean; virtual; abstract;
-      function  VerifyString(const AStr : {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF}) : Boolean;
-      function  VerifyStringA(const AStr : AnsiString) : Boolean; virtual; abstract;
-      {$IFDEF UNICODE}
-      function  VerifyStringW(const AStr : UnicodeString) : Boolean; virtual; abstract;
-      {$ENDIF}
+      function  VerifyString(const AStr : RawByteString) : Boolean; virtual; abstract;
     public {properties}
       property KeySize : TLbAsymKeySize
         read FKeySize write SetKeySize;
@@ -148,23 +139,38 @@ type
         read FOnProgress write FOnProgress;
     end;
 
-
+    function KeySizeFromBytes(AByteCount : Integer) : TLbAsymKeySize;
 
 implementation
 
 uses
-  LbCipher, LbProc, LbUtils;
+  LbCipher, LbProc, LbString;
+
+function KeySizeFromBytes(AByteCount : Integer) : TLbAsymKeySize;
+var
+  Index : TLbAsymKeySize;
+  Found : Boolean;
+begin
+  Result := low(TLbAsymKeySize);
+  Index := low(TLbAsymKeySize);
+  Found := False;
+  while (Index < High(TLbAsymKeySize)) and not Found do
+  begin
+    if (cLbAsymKeyBytes[Index] = AByteCount)  then
+    begin
+      Result := Index;
+      Found := True;
+    end;
+
+    inc(Index);
+  end;
+end;
 
 
 { == TLbAsymmetricKey ====================================================== }
 constructor TLbAsymmetricKey.Create(aKeySize : TLbAsymKeySize);
 begin
   FKeySize := aKeySize;
-end;
-{ -------------------------------------------------------------------------- }
-destructor TLbAsymmetricKey.Destroy;
-begin
-  inherited Destroy;
 end;
 { -------------------------------------------------------------------------- }
 procedure TLbAsymmetricKey.Assign(aKey : TLbAsymmetricKey);
@@ -338,7 +344,7 @@ begin
 end;
 { -------------------------------------------------------------------------- }
 {!!.06}
-procedure TLbAsymmetricKey.LoadFromStream(aStream : TStream);
+procedure TLbAsymmetricKey.LoadFromStream(aStream : TStream; const aPassPhrase : RawByteString);
   { load key from ASN.1 format stream (decrypt if necessary) }
 var
   KeyBuf : array[0..4096] of Byte;
@@ -350,10 +356,11 @@ begin
   aStream.Position := 0;
 
   { decrypt stream first if passphrase in not empty }
-  if (FPassphrase <> '') then begin
+  if (aPassPhrase <> '') then
+  begin
     MemStream := TMemoryStream.Create;
     try
-      StringHashMD5A(TMD5Digest(BFKey), FPassphrase);
+      StringHashMD5(TMD5Digest(BFKey), aPassPhrase);
       BFEncryptStream(aStream, MemStream, BFKey, False);
       Len := MemStream.Size;
       if (Len > SizeOf(KeyBuf)) then
@@ -363,7 +370,9 @@ begin
     finally
       MemStream.Free;
     end;
-  end else begin
+  end
+  else
+  begin
     Len := aStream.Size;
     if (Len > SizeOf(KeyBuf)) then
       raise Exception.Create(sASNKeyBadKey);
@@ -374,7 +383,7 @@ begin
 end;
 { -------------------------------------------------------------------------- }
 {!!.06}
-procedure TLbAsymmetricKey.StoreToStream(aStream : TStream);
+procedure TLbAsymmetricKey.StoreToStream(aStream : TStream; const aPassPhrase : RawByteString);
   { save key to ASN.1 format stream (encrypt if necessary) }
 var
   KeyBuf : array[0..4096] of Byte;
@@ -386,24 +395,26 @@ begin
   Len := CreateASNKey(@KeyBuf, SizeOf(KeyBuf));
 
   { encrypt buffer first if passphrase in not empty }
-  if (FPassphrase <> '') then begin
+  if (aPassPhrase <> '') then
+  begin
     MemStream := TMemoryStream.Create;
     try
       MemStream.Write(KeyBuf, Len);
       MemStream.Position := 0;
-      StringHashMD5A(TMD5Digest(BFKey), FPassphrase);
+      StringHashMD5(TMD5Digest(BFKey), aPassPhrase);
       BFEncryptStream(MemStream, aStream, BFKey, True);
     finally
       MemStream.Free;
     end;
-  end else
+  end
+  else
     aStream.Write(KeyBuf, Len);
 
   FillChar(KeyBuf, SizeOf(KeyBuf), #0);
 end;
 { -------------------------------------------------------------------------- }
 {!!.06}
-procedure TLbAsymmetricKey.LoadFromFile(aFileName : string);
+procedure TLbAsymmetricKey.LoadFromFile(aFileName : string; const aPassPhrase : RawByteString);
   { load key from ASN.1 format file (decrypt if necessary) }
 var
   FS : TFileStream;
@@ -417,7 +428,7 @@ begin
 end;
 { -------------------------------------------------------------------------- }
 {!!.06}
-procedure TLbAsymmetricKey.StoreToFile(aFileName : string);
+procedure TLbAsymmetricKey.StoreToFile(aFileName : string; const aPassPhrase : RawByteString);
   { save key to ASN.1 format file (encrypt if necessary) }
 var
   FS : TFileStream;
@@ -430,9 +441,55 @@ begin
   end;
 end;
 { -------------------------------------------------------------------------- }
+procedure TLbAsymmetricKey.SetBase64EncodedText(const Value: RawByteString);
+var
+  EncodedStream, DecodedStream : TStream;
+begin
+  assert(Length(Value) > 0, sASNKeyBadKey);
+  EncodedStream := nil;
+  DecodedStream := nil;
+  try
+    EncodedStream := TMemoryStream.Create;
+    EncodedStream.Write(Value[1],Length(Value));
+    EncodedStream.Position := 0;
+
+    DecodedStream := TMemoryStream.Create;
+    LbDecodeBase64(EncodedStream, DecodedStream);
+
+    DecodedStream.Position := 0;
+    LoadFromStream(DecodedStream);
+  finally
+    EncodedStream.Free;
+    DecodedStream.Free;
+  end;
+end;
+{ -------------------------------------------------------------------------- }
+function TLbAsymmetricKey.GetBase64EncodedText: RawByteString;
+var
+  DecodedStream, EncodedStream : TStream;
+begin
+  DecodedStream := nil;
+  EncodedStream := nil;
+  try
+    DecodedStream := TMemoryStream.Create;
+    StoreToStream(DecodedStream);
+    DecodedStream.Position := 0;
+
+    EncodedStream := TMemoryStream.Create;
+    LbEncodeBase64(DecodedStream, EncodedStream);
+
+    EncodedStream.Position := 0;
+    SetLength(Result, EncodedStream.Size);
+    EncodedStream.Read(Result[1], EncodedStream.Size);
+  finally
+    DecodedStream.Free;
+    EncodedStream.Free;
+  end;
+end;
+{ -------------------------------------------------------------------------- }
 {!!.06}
-procedure TLbAsymmetricKey.ParseASN1(var input : pByte; var length : Integer;
-                                     biValue : TLbBigInt);
+function TLbAsymmetricKey.ParseASN1(var input : pByte; var length : Integer;
+                                     biValue : TLbBigInt) : Integer;
 var
   tag : Integer;
   len : Integer;
@@ -451,6 +508,7 @@ begin
     biValue.CopyBuffer( input^, len );
     inc( pByte( input ), len );
     length := length - len;
+    Result := len;
   end else
     raise Exception.Create(sASNKeyBadKey);
 end;
@@ -491,24 +549,6 @@ end;
 procedure TLbSignature.SetKeySize(Value : TLbAsymKeySize);
 begin
   FKeySize := Value;
-end;
-
-procedure TLbSignature.SignString(const AStr: {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF});
-begin
-  {$IFDEF LOCKBOXUNICODE}
-  SignStringW(AStr);
-  {$ELSE}
-  SignStringA(AStr);
-  {$ENDIF}
-end;
-
-function TLbSignature.VerifyString(const AStr: {$IFDEF LOCKBOXUNICODE}UnicodeString{$ELSE}AnsiString{$ENDIF}): Boolean;
-begin
-  {$IFDEF LOCKBOXUNICODE}
-  Result := VerifyStringW(AStr);
-  {$ELSE}
-  Result := VerifyStringA(AStr);
-  {$ENDIF}
 end;
 
 end.

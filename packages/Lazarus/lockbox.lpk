@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="LockBox"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <OtherUnitFiles Value="..\..\source"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <SyntaxMode Value="Delphi"/>
+        </SyntaxOptions>
+      </Parsing>
+    </CompilerOptions>
+    <Files Count="11">
+      <Item1>
+        <Filename Value="..\..\source\LbUtils.pas"/>
+        <UnitName Value="LbUtils"/>
+      </Item1>
+      <Item2>
+        <Filename Value="..\..\source\LbAsym.pas"/>
+        <UnitName Value="LbAsym"/>
+      </Item2>
+      <Item3>
+        <Filename Value="..\..\source\LbBigInt.pas"/>
+        <UnitName Value="LbBigInt"/>
+      </Item3>
+      <Item4>
+        <Filename Value="..\..\source\LbCipher.pas"/>
+        <UnitName Value="LbCipher"/>
+      </Item4>
+      <Item5>
+        <Filename Value="..\..\source\LbClass.pas"/>
+        <UnitName Value="LbClass"/>
+      </Item5>
+      <Item6>
+        <Filename Value="..\..\source\LbConst.pas"/>
+        <UnitName Value="LbConst"/>
+      </Item6>
+      <Item7>
+        <Filename Value="..\..\source\LbDSA.pas"/>
+        <UnitName Value="LbDSA"/>
+      </Item7>
+      <Item8>
+        <Filename Value="..\..\source\LbProc.pas"/>
+        <UnitName Value="LbProc"/>
+      </Item8>
+      <Item9>
+        <Filename Value="..\..\source\LbRandom.pas"/>
+        <UnitName Value="LbRandom"/>
+      </Item9>
+      <Item10>
+        <Filename Value="..\..\source\LbRSA.pas"/>
+        <UnitName Value="LbRSA"/>
+      </Item10>
+      <Item11>
+        <Filename Value="..\..\source\LbString.pas"/>
+        <UnitName Value="LbString"/>
+      </Item11>
+    </Files>
+    <RequiredPkgs Count="1">
+      <Item1>
+        <PackageName Value="FCL"/>
+      </Item1>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>

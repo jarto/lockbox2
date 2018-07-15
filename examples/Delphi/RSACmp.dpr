@@ -1,12 +1,7 @@
 program RSACmp;
 
 uses
-{$IFDEF WIN32}
   Forms,
-{$ENDIF}
-{$IFDEF LINUX}
-  QForms,
-{$ENDIF}
   RSACmp1 in 'RSACmp1.pas' {Form1};
 
 
