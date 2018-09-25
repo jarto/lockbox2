@@ -421,7 +421,7 @@ var
 begin
   FS := TFileStream.Create(aFileName, fmOpenRead);
   try
-    LoadFromStream(FS);
+    LoadFromStream(FS, aPassPhrase);
   finally
     FS.Free;
   end;
@@ -435,7 +435,7 @@ var
 begin
   FS := TFileStream.Create(aFileName, fmCreate);
   try
-    StoreToStream(FS);
+    StoreToStream(FS, aPassPhrase);
   finally
     FS.Free;
   end;
