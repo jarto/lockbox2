@@ -142,7 +142,7 @@ begin
   Pri := TLbRSAKey.Create(TLbAsymKeySize(cbxKeySize.ItemIndex));
   try
     GenerateRSAKeysEx(Pri, Pub, TLbAsymKeySize(cbxKeySize.ItemIndex),
-      StrToIntDef(edtIterations.Text, 20), RSACallback);
+      StrToIntDef(edtIterations.Text, 20), nil, RSACallback);
     edtModulus.Text := Pri.ModulusAsString;
     edtPublicExponent.Text := Pub.ExponentAsString;
     edtPrivateExponent.Text := Pri.ExponentAsString;

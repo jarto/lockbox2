@@ -118,10 +118,10 @@ type
       FExponent : TLbBigInt;
       function ParseASNKey(Input : pByte; Length : Integer) : boolean; override;
       function  CreateASNKey(Input : pByteArray; Length : Integer) : Integer; override;
-      function GetModulusAsString : string;
-      procedure SetModulusAsString(Value : string);
-      function GetExponentAsString : string;
-      procedure SetExponentAsString(Value : string);
+      function GetModulusAsHexString : string;
+      procedure SetModulusAsHexString(Value : string);
+      function GetExponentAsHexString : string;
+      procedure SetExponentAsHexString(Value : string);
 
     public
       constructor Create(aKeySize : TLbAsymKeySize); override;
@@ -130,28 +130,30 @@ type
       procedure Assign(aKey : TLbAsymmetricKey); override;
       procedure Clear;
 
-      property Modulus : TLbBigInt
-        read FModulus;
-      property ModulusAsString : string
-        read GetModulusAsString write SetModulusAsString;
-      property Exponent : TLbBigInt
-        read FExponent;
-      property ExponentAsString : string
-        read GetExponentAsString write SetExponentAsString;
+      property Modulus : TLbBigInt read FModulus;
+      property ModulusAsString : string read GetModulusAsHexString write SetModulusAsHexString;
+      property Exponent : TLbBigInt read FExponent;
+      property ExponentAsString : string read GetExponentAsHexString write SetExponentAsHexString;
   end;
 
 
 { TLbRSA }
 type
   TLbRSA = class(TLbAsymmetricCipher)
-    protected {private}
+  private
+    function GetCryptoServiceProviderXML(AIsForPrivateKey : Boolean) : String;
+    function CalculatePQ : Boolean;
+  protected {private}
       FPrivateKey : TLbRSAKey;
       FPublicKey : TLbRSAKey;
       FPrimeTestIterations : Byte;
+      FFirstPrime : TLbBigInt;
+      FSecondPrime : TLbBigInt;
       procedure SetKeySize(Value : TLbAsymKeySize); override;
     public {methods}
       constructor Create(AOwner : TComponent); override;
       destructor Destroy; override;
+
       procedure DecryptFile(const InFile, OutFile : string); override;
       procedure DecryptStream(InStream , OutStream : TStream); override;
       function  DecryptString(const InString : RawByteString) : RawByteString; override;
@@ -159,16 +161,16 @@ type
       procedure EncryptStream(InStream, OutStream : TStream); override;
       function  EncryptString(const InString : RawByteString) : RawByteString; override;
       procedure GenerateKeyPair; override;
+      procedure GenerateKeyPairWithExponent(AExponent : TLbBigInt);
       function  OutBufSizeNeeded(InBufSize : Cardinal) : Cardinal; override;
       procedure RSACallback(var Abort : Boolean);
-    public {properties}
-      property PrivateKey : TLbRSAKey
-        read FPrivateKey;
-      property PublicKey : TLbRSAKey
-        read FPublicKey;
+
+      property PrivateKey : TLbRSAKey read FPrivateKey;
+      property PublicKey : TLbRSAKey read FPublicKey;
+
+      property CryptoServiceProviderXML[AIsForPrivateKey : Boolean] : String read GetCryptoServiceProviderXML;
     published {properties}
-      property PrimeTestIterations : Byte
-        read FPrimeTestIterations write FPrimeTestIterations;
+      property PrimeTestIterations : Byte read FPrimeTestIterations write FPrimeTestIterations;
       property KeySize;
     published {events}
       property OnProgress;
@@ -186,25 +188,35 @@ type
       FSignature  : TLbBigInt;
       FOnGetSignature : TLbRSAGetSignatureEvent;
       procedure DoGetSignature;
-      procedure EncryptHash(const HashDigest; DigestLen : Cardinal);
-      procedure DecryptHash(var HashDigest; DigestLen : Cardinal);
+      procedure EncryptHash(const HashDigest; DigestLen : Cardinal; WithHashDigestInfo : Boolean);
+      procedure DecryptHash(var HashDigest; DigestLen : Cardinal; WithHashDigestInfo : Boolean);
       procedure RSACallback(var Abort : Boolean);
       procedure SetKeySize(Value : TLbAsymKeySize); override;
-
+      function GetHashIdentifier : String;
     public {methods}
       constructor Create(AOwner : TComponent); override;
       destructor Destroy; override;
 
       procedure GenerateKeyPair; override;
-      procedure SignBuffer(const Buf; BufLen : Cardinal); override;
-      procedure SignFile(const AFileName : string);  override;
-      procedure SignStream(AStream : TStream); override;
-      procedure SignString(const AStr : RawByteString); override;
+      procedure SignBuffer(const Buf; BufLen : Cardinal); overload; override;
+      procedure SignFile(const AFileName : string); overload; override;
+      procedure SignStream(AStream : TStream); overload; override;
+      procedure SignString(const AStr : RawByteString); overload; override;
 
-      function  VerifyBuffer(const Buf; BufLen : Cardinal) : Boolean; override;
-      function  VerifyFile(const AFileName : string) : Boolean; override;
-      function  VerifyStream(AStream : TStream) : Boolean; override;
-      function  VerifyString(const AStr : RawByteString) : Boolean; override;
+      procedure SignBuffer(const Buf; BufLen : Cardinal; WithHashDigestInfo : Boolean); reintroduce; overload;
+      procedure SignFile(const AFileName : string; WithHashDigestInfo : Boolean); reintroduce; overload;
+      procedure SignStream(AStream : TStream; WithHashDigestInfo : Boolean); reintroduce; overload;
+      procedure SignString(const AStr : RawByteString; WithHashDigestInfo : Boolean); reintroduce; overload;
+
+      function  VerifyBuffer(const Buf; BufLen : Cardinal) : Boolean; overload; override;
+      function  VerifyFile(const AFileName : string) : Boolean; overload; override;
+      function  VerifyStream(AStream : TStream) : Boolean; overload; override;
+      function  VerifyString(const AStr : RawByteString) : Boolean; overload; override;
+
+      function  VerifyBuffer(const Buf; BufLen : Cardinal; WithHashDigestInfo : Boolean) : Boolean; reintroduce; overload;
+      function  VerifyFile(const AFileName : string; WithHashDigestInfo : Boolean) : Boolean; reintroduce; overload;
+      function  VerifyStream(AStream : TStream; WithHashDigestInfo : Boolean) : Boolean; reintroduce; overload;
+      function  VerifyString(const AStr : RawByteString; WithHashDigestInfo : Boolean) : Boolean; reintroduce; overload;
 
     public {properties}
       property PrivateKey : TLbRSAKey
@@ -277,8 +289,9 @@ function RSAEncryptString(const InString : RawByteString;
             Key : TLbRSAKey; Encrypt : Boolean) : RawByteString;
 procedure GenerateRSAKeysEx(var PrivateKey, PublicKey : TLbRSAKey;
             KeySize : TLbAsymKeySize; PrimeTestIterations : Byte;
-            Callback : TLbRSACallback);
-procedure GenerateRSAKeys(var PrivateKey, PublicKey : TLbRSAKey);
+            Exponent : TlbBigInt; Callback : TLbRSACallback);
+procedure GenerateRSAKeys(var PrivateKey, PublicKey : TLbRSAKey); overload;
+procedure GenerateRSAKeys(Exponent : TlbBigInt; var PrivateKey, PublicKey : TLbRSAKey); overload;
 
 
 implementation
@@ -388,15 +401,21 @@ end;
 
 
 { == Public RSA routines =================================================== }
-procedure GenerateRSAKeys(var PrivateKey, PublicKey : TLbRSAKey);
+procedure GenerateRSAKeys(Exponent : TLbBigInt; var PrivateKey, PublicKey : TLbRSAKey);
   { create RSA public/private key pair with default settings }
 begin
-  GenerateRSAKeysEx(PrivateKey, PublicKey, cLbDefAsymKeySize, cDefIterations, nil);
+  GenerateRSAKeysEx(PrivateKey, PublicKey, cLbDefAsymKeySize, cDefIterations, Exponent, nil);
+end;
+{ -------------------------------------------------------------------------- }
+procedure GenerateRSAKeys(var PrivateKey, PublicKey : TLbRSAKey);
+begin
+  GenerateRSAKeys(nil, PrivateKey, PublicKey);
 end;
 { -------------------------------------------------------------------------- }
 procedure GenerateRSAKeysEx(var PrivateKey, PublicKey : TLbRSAKey;
                             KeySize : TLbAsymKeySize;
                             PrimeTestIterations : Byte;
+                            Exponent : TlbBigInt;
                             Callback : TLbRSACallback);
   { create RSA key pair speciying size and prime test iterations and }
   { callback function }
@@ -449,8 +468,15 @@ begin
       p1q1.Copy(p);
       p1q1.Multiply(q);
 
-      { e = randomly chosen simple prime > 3 }
-      e.RandomSimplePrime;
+      if assigned(Exponent) then
+      begin
+        e.Copy(Exponent);
+      end
+      else
+      begin
+        { e = randomly chosen simple prime > 3 }
+        e.RandomSimplePrime;
+      end;
 
 
       { d = inverse(e) mod (p-1)(q-1) }
@@ -812,38 +838,28 @@ begin
   FExponent.Clear;
 end;
 { -------------------------------------------------------------------------- }
-function TLbRSAKey.GetModulusAsString : string;
+function TLbRSAKey.GetModulusAsHexString : string;
   { return "big to little" hex string representation of modulus }
 begin
   Result := FModulus.IntStr;
 end;
 { -------------------------------------------------------------------------- }
-procedure TLbRSAKey.SetModulusAsString(Value : string);
+procedure TLbRSAKey.SetModulusAsHexString(Value : string);
   { set modulus to value represented by "big to little" hex string }
-var
-  Buf : array[Byte] of Byte;
 begin
-  FillChar(Buf, SizeOf(Buf), #0);
-  HexToBuffer(Value, Buf, cLbAsymKeyBytes[FKeySize]);
-  FModulus.CopyBuffer(Buf, cLbAsymKeyBytes[FKeySize]);
-  FModulus.Trim;
+  FModulus.IntStr := Value;
 end;
 { -------------------------------------------------------------------------- }
-function TLbRSAKey.GetExponentAsString : string;
+function TLbRSAKey.GetExponentAsHexString : string;
   { return "big to little" hex string representation of exponent }
 begin
   Result := FExponent.IntStr;
 end;
 { -------------------------------------------------------------------------- }
-procedure TLbRSAKey.SetExponentAsString(Value : string);
+procedure TLbRSAKey.SetExponentAsHexString(Value : string);
   { set exponent to value represented by "big to little" hex string }
-var
-  Buf : array[Byte] of Byte;
 begin
-  FillChar(Buf, SizeOf(Buf), #0);
-  HexToBuffer(Value, Buf, cLbAsymKeyBytes[FKeySize]);
-  FExponent.CopyBuffer(Buf, cLbAsymKeyBytes[FKeySize]);
-  FExponent.Trim;
+  FExponent.IntStr := Value;
 end;
 {------------------------------------------------------------------------------}
 function TLbRSAKey.CreateASNKey(Input : pByteArray; Length : Integer) : Integer;
@@ -890,6 +906,127 @@ end;
 
 
 { == TLbRSA ================================================================ }
+function TLbRSA.CalculatePQ: Boolean;
+var
+  d, e, n : TLbBigInt;
+  k, r, t, y, g, Nminus1, j, TWO, x : TLbBigInt;
+  index : Integer;
+  IsFound, IsDone : boolean;
+begin
+  IsFound := false;
+
+  d := FPrivateKey.Exponent;
+  e := FPublicKey.Exponent;
+  n := FPrivateKey.Modulus;
+
+  k := TLbBigInt.Create(d.Size);
+  try
+    k.Copy(d);
+    k.Multiply(e);
+    k.SubtractByte($01);
+
+    if k.IsEven then
+    begin
+      r := nil;
+      t := nil;
+      y := nil;
+      g := nil;
+      Nminus1 := nil; //n - 1
+      TWO := nil;
+      try
+        Nminus1 := TLbBigInt.Create(n.Size);
+        Nminus1.Copy(n);
+        Nminus1.SubtractByte($01);
+
+        TWO := TLbBigInt.Create(d.Size);
+        TWO.CopyByte($02);
+
+        r := TLbBigInt.Create(k.Size);
+        r.Copy(k);
+        r.Divide(TWO);
+
+        t := TLbBigInt.Create(k.Size);
+        t.CopyByte($01);
+        while r.IsEven do
+        begin
+          r.Divide(TWO);
+          t.AddByte($01);
+        end;
+
+        y := TLbBigInt.Create(n.Size);
+        g := TLbBigInt.Create(n.Size);
+        index := 0;
+        while (index < 100) and not IsFound do
+        begin
+          g.RandomBytes(n.Size);
+
+          y.Copy(g);
+          y.PowerAndMod(r, n);
+          if (not y.IsOne and (y.Compare(Nminus1) <> 0)) then
+          begin
+            j := nil;
+            x := nil;
+            try
+              x := TLbBigInt.Create(y.Size);
+
+              j := TLbBigInt.Create(k.Size);
+              j.CopyByte($01);
+
+              IsDone := false;
+              while (j.Compare(t) <= 0) and not IsDone do
+              begin
+                x.Copy(y);
+                x.PowerAndMod(TWO, n);
+                IsFound := x.IsOne;
+                IsDone := IsFound or (x.Compare(Nminus1) = 0);
+                if not IsDone then
+                begin
+                  y.Copy(x);
+                end;
+
+                j.AddByte($01);
+              end;
+
+              if not IsFound then
+              begin
+                x.Copy(y);
+                x.PowerAndMod(TWO, n);
+                IsFound := x.IsOne;
+              end;
+            finally
+              j.Free;
+              x.Free;
+            end;
+          end;
+
+          inc(index);
+        end;
+
+        if IsFound then
+        begin
+          FFirstPrime.Copy(y);
+          FFirstPrime.SubtractByte($01);
+          FFirstPrime.GCD(n);
+
+          FSecondPrime.Copy(n);
+          FSecondPrime.Divide(FFirstPrime);
+        end;
+      finally
+        r.Free;
+        t.Free;
+        g.Free;
+        y.Free;
+        Nminus1.Free;
+        TWO.Free;
+      end;
+    end;
+  finally
+    k.Free;
+  end;
+
+  Result := IsFound;
+end;
+
 constructor TLbRSA.Create(AOwner : TComponent);
   { initialize }
 begin
@@ -898,13 +1035,17 @@ begin
   FPrivateKey := TLbRSAKey.Create(FKeySize);
   FPublicKey  := TLbRSAKey.Create(FKeySize);
   FPrimeTestIterations := cDefIterations;
+  FFirstPrime := TLbBigInt.Create(cLbAsymKeyBytes[FKeySize]);
+  FSecondPrime := TLbBigInt.Create(FFirstPrime.Size);
 end;
 { -------------------------------------------------------------------------- }
 destructor TLbRSA.Destroy;
-  { finalize }
 begin
   FPrivateKey.Free;
   FPublicKey.Free;
+
+  FFirstPrime.Free;
+  FSecondPrime.Free;
 
   inherited Destroy;
 end;
@@ -948,16 +1089,111 @@ end;
 procedure TLbRSA.GenerateKeyPair;
   { generate RSA public/private key pair }
 begin
+  GenerateKeyPairWithExponent(nil);
+end;
+{ -------------------------------------------------------------------------- }
+procedure TLbRSA.GenerateKeyPairWithExponent(AExponent : TLbBigInt);
+begin
   if Assigned(FPrivateKey) then
     FPrivateKey.Free;
   if Assigned(FPublicKey) then
     FPublicKey.Free;
   try
-    GenerateRSAKeysEx(FPrivateKey, FPublicKey, FKeySize,
-      FPrimeTestIterations, RSACallback);
+    GenerateRSAKeysEx(FPrivateKey, FPublicKey, FKeySize, FPrimeTestIterations, AExponent, RSACallback);
   except
     raise Exception.Create(sRSAKeyPairErr);
   end;
+end;
+{ -------------------------------------------------------------------------- }
+function TLbRSA.GetCryptoServiceProviderXML(AIsForPrivateKey : Boolean): String;
+const
+  RSA_KEY_VALUE = 'RSAKeyValue';
+  RSA_MODULUS = 'Modulus';
+  RSA_PUBLIC_EXPONENT = 'Exponent';
+  RSA_PRIVATE_EXPONENT = 'D';
+  RSA_PRIME_ONE = 'P';
+  RSA_PRIME_TWO = 'Q';
+  RSA_D_MOD_PRIME_ONE = 'DP';
+  RSA_D_MOD_PRIME_TWO = 'DQ';
+  RSA_PRIME_TWO_INVERSE = 'InverseQ';
+  XML_TAG = '<%0:s>%1:s</%0:s>';
+var
+  Text : String;
+  ReversedBigInt, P1, Q1 : TLbBigInt;
+begin
+  ReversedBigInt := TlbBigInt.Create(cLbAsymKeyBytes[FKeySize]);
+  try
+    ReversedBigInt.Copy(FPublicKey.Modulus);
+    ReversedBigInt.Trim;
+    ReversedBigInt.ReverseBytes;
+    Text := Format(XML_TAG, [RSA_MODULUS, ReversedBigInt.Base64Str]);
+
+    ReversedBigInt.Copy(FPublicKey.Exponent);
+    ReversedBigInt.Trim;
+    ReversedBigInt.ReverseBytes;
+    Text := Text + Format(XML_TAG, [RSA_PUBLIC_EXPONENT, ReversedBigInt.Base64Str]);
+
+    if AIsForPrivateKey then
+    begin
+      if not CalculatePQ then
+      begin
+        raise Exception.Create('Cannot calculate prime factors');
+      end;
+
+      ReversedBigInt.Copy(FFirstPrime);
+      ReversedBigInt.Trim;
+      ReversedBigInt.ReverseBytes;
+      Text := Text + Format(XML_TAG, [RSA_PRIME_ONE, ReversedBigInt.Base64Str]);
+
+      ReversedBigInt.Copy(FSecondPrime);
+      ReversedBigInt.Trim;
+      ReversedBigInt.ReverseBytes;
+      Text := Text + Format(XML_TAG, [RSA_PRIME_TWO, ReversedBigInt.Base64Str]);
+
+      P1 := TLbBigInt.Create(FFirstPrime.Size);
+      try
+        P1.Copy(FFirstPrime);
+        P1.SubtractByte($01);
+
+        ReversedBigInt.Copy(FPrivateKey.Exponent);
+        ReversedBigInt.Modulus(P1);
+        ReversedBigInt.Trim;
+        ReversedBigInt.ReverseBytes;
+        Text := Text + Format(XML_TAG, [RSA_D_MOD_PRIME_ONE, ReversedBigInt.Base64Str]);
+      finally
+        P1.Free;
+      end;
+
+      Q1 := TLbBigInt.Create(FSecondPrime.Size);
+      try
+        Q1.Copy(FSecondPrime);
+        Q1.SubtractByte($01);
+
+        ReversedBigInt.Copy(FPrivateKey.Exponent);
+        ReversedBigInt.Modulus(Q1);
+        ReversedBigInt.Trim;
+        ReversedBigInt.ReverseBytes;
+        Text := Text + Format(XML_TAG, [RSA_D_MOD_PRIME_TWO, ReversedBigInt.Base64Str]);
+      finally
+        Q1.Free;
+      end;
+
+      ReversedBigInt.Copy(FSecondPrime);
+      ReversedBigInt.ModInv(FFirstPrime);
+      ReversedBigInt.Trim;
+      ReversedBigInt.ReverseBytes;
+      Text := Text + Format(XML_TAG, [RSA_PRIME_TWO_INVERSE, ReversedBigInt.Base64Str]);
+
+      ReversedBigInt.Copy(FPrivateKey.Exponent);
+      ReversedBigInt.Trim;
+      ReversedBigInt.ReverseBytes;
+      Text := Text + Format(XML_TAG, [RSA_PRIVATE_EXPONENT, ReversedBigInt.Base64Str]);
+    end;
+  finally
+    ReversedBigInt.Free;
+  end;
+
+  Result := Format(XML_TAG,[RSA_KEY_VALUE,Text]);
 end;
 { -------------------------------------------------------------------------- }
 function TLbRSA.OutBufSizeNeeded(InBufSize : Cardinal) : Cardinal;
@@ -1032,24 +1268,61 @@ begin
     FPrivateKey.Free;
   if Assigned(FPublicKey) then
     FPublicKey.Free;
-  GenerateRSAKeysEx(FPrivateKey, FPublicKey, FKeySize, FPrimeTestIterations,
-                    RSACallback);
+  GenerateRSAKeysEx(FPrivateKey, FPublicKey, FKeySize, FPrimeTestIterations, nil, RSACallback);
 end;
 { -------------------------------------------------------------------------- }
-procedure TLbRSASSA.EncryptHash(const HashDigest; DigestLen : Cardinal);
+function TLbRSASSA.GetHashIdentifier : String;
+var
+  HashID : String;
+begin
+  case FHashMethod of
+    hmMD5 :
+      HashID := '30 20 30 0C 06 08 2A 86 48 86 F7 0D 02 05 05 00 04 10';
+
+    hmSHA1 :
+      HashID := '30 21 30 09 06 05 2B 0E 03 02 1A 05 00 04 14';
+  else
+    raise Exception.Create('Unknown hash type in GetHashIdentifier()');
+  end;
+
+  Result := StringReplace(HashID, #32, '', [rfReplaceAll]);
+end;
+{ -------------------------------------------------------------------------- }
+procedure TLbRSASSA.EncryptHash(const HashDigest; DigestLen : Cardinal; WithHashDigestInfo : Boolean);
   { encrypt message digest into signature }
+var
+  DigestInfo : TLbBigInt;
 begin
   if (FPrivateKey.Modulus.Size = 0) then                             {!!.02}
     raise Exception.Create(sRSAPrivateKeyErr);
 
   FSignature.CopyBuffer(HashDigest, DigestLen);
+
+  if WithHashDigestInfo then
+  begin
+    FSignature.ReverseBytes;
+    DigestInfo := TLbBigInt.Create(FSignature.Size);
+    try
+      DigestInfo.IntStr := GetHashIdentifier;
+      DigestInfo.ReverseBytes;
+      FSignature.Append(DigestInfo);
+    finally
+      DigestInfo.Free;
+    end;
+  end;
+
   RSAEncryptBigInt(FSignature, FPrivateKey, bt01, True);             {!!.02}
+
+  if WithHashDigestInfo then
+  begin
+    FSignature.ReverseBytes;
+  end;
 end;
 { -------------------------------------------------------------------------- }
-procedure TLbRSASSA.DecryptHash(var HashDigest; DigestLen : Cardinal);
+procedure TLbRSASSA.DecryptHash(var HashDigest; DigestLen : Cardinal; WithHashDigestInfo : Boolean);
   { decrypt signature into message digest }
 var
-  biBlock : TLbBigInt;
+  biBlock, DigestInfo : TLbBigInt;
 begin
   if (FPublicKey.Modulus.Size = 0) then                              {!!.02}
     raise Exception.Create(sRSAPublicKeyErr);
@@ -1058,7 +1331,31 @@ begin
   try
     DoGetSignature;
     biBlock.Copy(FSignature);
+
+    if (WithHashDigestInfo) then
+    begin
+      biBlock.ReverseBytes;
+    end;
+
     RSAEncryptBigInt(biBlock, FPublicKey, bt01, False);              {!!.02}
+
+    if (WithHashDigestInfo) then
+    begin
+      biBlock.ReverseBytes;
+
+      DigestInfo := TLbBigInt.Create(FSignature.Size);
+      try
+        DigestInfo.IntStr := GetHashIdentifier;
+        biBlock.Subtract(DigestInfo);
+        biBlock.ReverseBytes;
+        biBlock.Trim;
+      finally
+        DigestInfo.Free;
+      end;
+
+      biBlock.ReverseBytes;
+    end;
+
     FillChar(HashDigest, DigestLen, #0);
     if biBlock.Size < Integer(DigestLen) then                        {!!.05}
       biBlock.ToBuffer(HashDigest, biBlock.Size)
@@ -1071,6 +1368,11 @@ begin
 end;
 { -------------------------------------------------------------------------- }
 procedure TLbRSASSA.SignBuffer(const Buf; BufLen : Cardinal);
+begin
+  SignBuffer(Buf, BufLen, false);
+end;
+{ -------------------------------------------------------------------------- }
+procedure TLbRSASSA.SignBuffer(const Buf; BufLen : Cardinal; WithHashDigestInfo : Boolean);
   { generate RSA signature of buffer data }
 var
   MD5Digest  : TMD5Digest;
@@ -1080,37 +1382,40 @@ begin
     hmMD5  :
       begin
         HashMD5(MD5Digest, Buf, BufLen);
-        EncryptHash(MD5Digest, SizeOf(MD5Digest));
+        EncryptHash(MD5Digest, SizeOf(MD5Digest), WithHashDigestInfo);
       end;
     hmSHA1 :
       begin
         HashSHA1(SHA1Digest, Buf, BufLen);
-        EncryptHash(SHA1Digest, SizeOf(SHA1Digest));
+        EncryptHash(SHA1Digest, SizeOf(SHA1Digest), WithHashDigestInfo);
       end;
   end;
 end;
 { -------------------------------------------------------------------------- }
 procedure TLbRSASSA.SignFile(const AFileName : string);
+begin
+  SignFile(AFileName, false);
+end;
+{ -------------------------------------------------------------------------- }
+procedure TLbRSASSA.SignFile(const AFileName : string; WithHashDigestInfo : Boolean);
   { generate RSA signature of file data }
 var
-  MD5Digest  : TMD5Digest;
-  SHA1Digest : TSHA1Digest;
+  Stream : TStream;
 begin
-  case FHashMethod of
-    hmMD5  :
-      begin
-        FileHashMD5(MD5Digest, AFileName);
-        EncryptHash(MD5Digest, SizeOf(MD5Digest));
-      end;
-    hmSHA1 :
-      begin
-        FileHashSHA1(SHA1Digest, AFileName);
-        EncryptHash(SHA1Digest, SizeOf(SHA1Digest));
-      end;
+  Stream := TFileStream.Create(AFileName, fmOpenRead);
+  try
+    SignStream(Stream, WithHashDigestInfo);
+  finally
+    Stream.Free;
   end;
 end;
 { -------------------------------------------------------------------------- }
 procedure TLbRSASSA.SignStream(AStream : TStream);
+begin
+  SignStream(AStream, false);
+end;
+{ -------------------------------------------------------------------------- }
+procedure TLbRSASSA.SignStream(AStream : TStream; WithHashDigestInfo : Boolean);
   { generate RSA signature of stream data }
 var
   MD5Digest  : TMD5Digest;
@@ -1120,37 +1425,33 @@ begin
     hmMD5  :
       begin
         StreamHashMD5(MD5Digest, AStream);
-        EncryptHash(MD5Digest, SizeOf(MD5Digest));
+        EncryptHash(MD5Digest, SizeOf(MD5Digest), WithHashDigestInfo);
       end;
     hmSHA1 :
       begin
         StreamHashSHA1(SHA1Digest, AStream);
-        EncryptHash(SHA1Digest, SizeOf(SHA1Digest));
+        EncryptHash(SHA1Digest, SizeOf(SHA1Digest), WithHashDigestInfo);
       end;
   end;
 end;
 { -------------------------------------------------------------------------- }
 procedure TLbRSASSA.SignString(const AStr : RawByteString);
-  { generate RSA signature of string data }
-var
-  MD5Digest  : TMD5Digest;
-  SHA1Digest : TSHA1Digest;
 begin
-  case FHashMethod of
-    hmMD5  :
-      begin
-        StringHashMD5(MD5Digest, AStr);
-        EncryptHash(MD5Digest, SizeOf(MD5Digest));
-      end;
-    hmSHA1 :
-      begin
-        StringHashSHA1(SHA1Digest, AStr);
-        EncryptHash(SHA1Digest, SizeOf(SHA1Digest));
-      end;
-  end;
+  SignString(AStr, false);
+end;
+{ -------------------------------------------------------------------------- }
+procedure TLbRSASSA.SignString(const AStr : RawByteString; WithHashDigestInfo : Boolean);
+  { generate RSA signature of string data }
+begin
+  SignBuffer(AStr[1], Length(AStr), WithHashDigestInfo);
 end;
 { -------------------------------------------------------------------------- }
 function TLbRSASSA.VerifyBuffer(const Buf; BufLen : Cardinal) : Boolean;
+begin
+  Result := VerifyBuffer(Buf, BufLen, False);
+end;
+{ -------------------------------------------------------------------------- }
+function TLbRSASSA.VerifyBuffer(const Buf; BufLen : Cardinal; WithHashDigestInfo : Boolean) : Boolean;
   { verify RSA signature agrees with buffer data }
 var
   MD5Digest1  : TMD5Digest;
@@ -1161,13 +1462,13 @@ begin
   case FHashMethod of
     hmMD5 :
       begin
-        DecryptHash(MD5Digest1, SizeOf(TMD5Digest));
+        DecryptHash(MD5Digest1, SizeOf(TMD5Digest), WithHashDigestInfo);
         HashMD5(MD5Digest2, Buf, BufLen);
         Result := CompareBuffers(MD5Digest1, MD5Digest2, SizeOf(TMD5Digest));
       end;
     hmSHA1 :
       begin
-        DecryptHash(SHA1Digest1, SizeOf(TSHA1Digest));
+        DecryptHash(SHA1Digest1, SizeOf(TSHA1Digest), WithHashDigestInfo);
         HashSHA1(SHA1Digest2, Buf, BufLen);
         Result := CompareBuffers(SHA1Digest1, SHA1Digest2, SizeOf(TSHA1Digest));
       end;
@@ -1177,32 +1478,29 @@ begin
 end;
 { -------------------------------------------------------------------------- }
 function TLbRSASSA.VerifyFile(const AFileName : string) : Boolean;
+begin
+  Result := VerifyFile(AFileName, False);
+end;
+{ -------------------------------------------------------------------------- }
+function TLbRSASSA.VerifyFile(const AFileName : string; WithHashDigestInfo : Boolean) : Boolean;
   { verify RSA signature agrees with file data }
 var
-  MD5Digest1  : TMD5Digest;
-  MD5Digest2  : TMD5Digest;
-  SHA1Digest1 : TSHA1Digest;
-  SHA1Digest2 : TSHA1Digest;
+  Stream : TStream;
 begin
-  case FHashMethod of
-    hmMD5 :
-      begin
-        DecryptHash(MD5Digest1, SizeOf(TMD5Digest));
-        FileHashMD5(MD5Digest2, AFileName);
-        Result := CompareBuffers(MD5Digest1, MD5Digest2, SizeOf(TMD5Digest));
-      end;
-    hmSHA1 :
-      begin
-        DecryptHash(SHA1Digest1, SizeOf(TSHA1Digest));
-        FileHashSHA1(SHA1Digest2, AFileName);
-        Result := CompareBuffers(SHA1Digest1, SHA1Digest2, SizeOf(TSHA1Digest));
-      end;
-  else
-    Result := False;
+  Stream := TFileStream.Create(AFileName, fmOpenRead);
+  try
+    Result := VerifyStream(Stream, WithHashDigestInfo);
+  finally
+    Stream.Free;
   end;
 end;
 { -------------------------------------------------------------------------- }
 function TLbRSASSA.VerifyStream(AStream : TStream) : Boolean;
+begin
+  Result := VerifyStream(AStream, False);
+end;
+{ -------------------------------------------------------------------------- }
+function TLbRSASSA.VerifyStream(AStream : TStream; WithHashDigestInfo : Boolean) : Boolean;
   { verify RSA signature agrees with stream data }
 var
   MD5Digest1  : TMD5Digest;
@@ -1213,13 +1511,13 @@ begin
   case FHashMethod of
     hmMD5 :
       begin
-        DecryptHash(MD5Digest1, SizeOf(TMD5Digest));
+        DecryptHash(MD5Digest1, SizeOf(TMD5Digest), WithHashDigestInfo);
         StreamHashMD5(MD5Digest2, AStream);
         Result := CompareBuffers(MD5Digest1, MD5Digest2, SizeOf(TMD5Digest));
       end;
     hmSHA1 :
       begin
-        DecryptHash(SHA1Digest1, SizeOf(TSHA1Digest));
+        DecryptHash(SHA1Digest1, SizeOf(TSHA1Digest), WithHashDigestInfo);
         StreamHashSHA1(SHA1Digest2, AStream);
         Result := CompareBuffers(SHA1Digest1, SHA1Digest2, SizeOf(TSHA1Digest));
       end;
@@ -1229,29 +1527,14 @@ begin
 end;
 { -------------------------------------------------------------------------- }
 function TLbRSASSA.VerifyString(const AStr : RawByteString) : Boolean;
-  { verify RSA signature agrees with string data }
-var
-  MD5Digest1  : TMD5Digest;
-  MD5Digest2  : TMD5Digest;
-  SHA1Digest1 : TSHA1Digest;
-  SHA1Digest2 : TSHA1Digest;
 begin
-  case FHashMethod of
-    hmMD5 :
-      begin
-        DecryptHash(MD5Digest1, SizeOf(TMD5Digest));
-        StringHashMD5(MD5Digest2, AStr);
-        Result := CompareBuffers(MD5Digest1, MD5Digest2, SizeOf(TMD5Digest));
-      end;
-    hmSHA1 :
-      begin
-        DecryptHash(SHA1Digest1, SizeOf(TSHA1Digest));
-        StringHashSHA1(SHA1Digest2, AStr);
-        Result := CompareBuffers(SHA1Digest1, SHA1Digest2, SizeOf(TSHA1Digest));
-      end;
-  else
-    Result := False;
-  end;
+  Result := VerifyString(AStr, False);
+end;
+{ -------------------------------------------------------------------------- }
+function TLbRSASSA.VerifyString(const AStr : RawByteString; WithHashDigestInfo : Boolean) : Boolean;
+  { verify RSA signature agrees with string data }
+begin
+  Result := VerifyBuffer(AStr[1], Length(AStr), WithHashDigestInfo);
 end;
 { -------------------------------------------------------------------------- }
 procedure TLbRSASSA.RSACallback(var Abort : Boolean);
