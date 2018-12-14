@@ -68,12 +68,16 @@ type
 { TLbBigInt }
 type
   TLbBigInt = class
-    protected {private}
+  private
+    function GetBase64Str : string;
+    procedure SetBase64Str(const Value: string);
+    procedure SetHexStr(const Value: string);
+  protected {private}
       FI : LbInteger;
       procedure setSign(value : Boolean);
       function getSign : Boolean;
       function GetSize : integer;                                         {!!03}
-      function GetIntStr : string;
+      function GetHexStr : string;
       function GetIntBuf : pByte;
     public
       constructor Create(ALen : Integer);
@@ -84,6 +88,7 @@ type
       procedure Multiply(I2 : TLbBigInt);
       procedure Divide(I2 : TLbBigInt);
       procedure Modulus(I2 : TLbBigInt);
+      procedure GCD(I2 : TLbBigInt);
       function ModInv(Modulus : TLbBigInt) : Boolean;
       procedure PowerAndMod(Exponent : TLbBigInt; modulus : TLbBigInt);
 
@@ -136,16 +141,12 @@ type
       function ToBuffer(var Buf; BufLen : Integer) : integer;
       function GetByteValue( place : integer ) : Byte;
 
-      property Sign : Boolean
-        read getSign write setSign;
-      property Int : LbInteger
-        read FI;
-      property IntBuf : pByte
-        read GetIntBuf;
-      property IntStr : string
-        read GetIntStr;
-      property Size : integer                                             {!!03}
-        read GetSize;
+      property Sign : Boolean read getSign write setSign;
+      property Int : LbInteger read FI;
+      property IntBuf : pByte read GetIntBuf;
+      property IntStr : string read GetHexStr write SetHexStr;
+      property Size : integer read GetSize;
+      property Base64Str : string read GetBase64Str write SetBase64Str;
 
 end;
 
@@ -2192,6 +2193,31 @@ begin
   end;
 end;
 
+{ ------------------------------------------------------------------- }
+procedure LbGreatestCommonDivisor(u, v : TLbBigInt);
+var
+  localU, localV : TLbBigInt;
+begin
+  localU := nil;
+  localV := nil;
+  try
+    localV := TLbBigInt.Create(v.Size);
+    localV.Copy(v);
+
+    localU := TLbBigInt.Create(u.Size);
+    while not localV.IsZero do
+    begin
+      localU.Copy(u);
+      localU.Modulus(localV);
+      u.Copy(localV);
+      localV.Copy(localU);
+    end;
+  finally
+    localU.Free;
+    localV.Free;
+  end;
+end;
+
 
 { == TLbLbInteger ========================================================= }
 constructor TLbBigInt.Create(ALen : Integer);
@@ -2592,9 +2618,39 @@ begin
   Result := FI.dwUsed;
 end;
 { ------------------------------------------------------------------- }
-function TLbBigInt.GetIntStr : string;
+procedure TLbBigInt.GCD(I2: TLbBigInt);
+begin
+  LbGreatestCommonDivisor(self, I2);
+end;
+{ ------------------------------------------------------------------- }
+function TLbBigInt.GetBase64Str : string;
+begin
+  Result := BufferToBase64(IntBuf^, FI.dwUsed);
+end;
+{ ------------------------------------------------------------------- }
+procedure TLbBigInt.SetBase64Str(const Value: string);
+var
+  BufferSize : Cardinal;
+begin
+  Base64ToBuffer(Value, IntBuf^, BufferSize);
+  FI.dwUsed := BufferSize;
+  Trim;
+end;
+{ ------------------------------------------------------------------- }
+function TLbBigInt.GetHexStr : string;
 begin
   Result := BufferToHex(IntBuf^, FI.dwUsed);
+end;
+{ ------------------------------------------------------------------- }
+procedure TLbBigInt.SetHexStr(const Value: string);
+var
+  Buffer : array[Byte] of Byte;
+  BufferSize : Cardinal;
+begin
+  BufferSize := Length(Value) div 2;
+  HexToBuffer(Value, Buffer, BufferSize);
+  CopyBuffer(Buffer, BufferSize);
+  Trim;
 end;
 { ------------------------------------------------------------------- }
 function TLbBigInt.GetIntBuf : pByte;

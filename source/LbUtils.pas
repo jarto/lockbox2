@@ -38,6 +38,8 @@ interface
 uses
   SysUtils;
 
+function BufferToBase64(const Buf; BufSize : Cardinal) : String;
+function Base64ToBuffer(const Base64Text : string; var Buf; out BufferSize : Cardinal) : Boolean;
 function BufferToHex(const Buf; BufSize : Cardinal) : string;
 function HexToBuffer(const Hex : string; var Buf; BufSize : Cardinal) : Boolean;
 function Min(A, B : LongInt) : LongInt;
@@ -57,6 +59,10 @@ function UTF8ToString(const AValue: UTF8String): String;
 
 
 implementation
+
+uses
+  Classes,
+  LbString;
 
 {$IFDEF FPC}
   function UTF8ToString(const AValue: UTF8String): String;
@@ -119,7 +125,59 @@ begin
 end;
 {$ENDIF}
 
+{ -------------------------------------------------------------------------- }
+function Base64ToBuffer(const Base64Text : string; var Buf; out BufferSize : Cardinal) : Boolean;
+var
+  EncodedStream, DecodedStream : TStream;
+  RawText : RawByteString;
+begin
+  RawText := StringToUTF8(Base64Text);
 
+  EncodedStream := nil;
+  DecodedStream := nil;
+  try
+    EncodedStream := TMemoryStream.Create;
+    EncodedStream.Write(RawText[1],Length(RawText));
+    EncodedStream.Position := 0;
+
+    DecodedStream := TMemoryStream.Create;
+    LbDecodeBase64(EncodedStream, DecodedStream);
+
+    DecodedStream.Position := 0;
+    BufferSize := DecodedStream.Size;
+    DecodedStream.Read(Buf, BufferSize);
+    Result := (3 * Length(RawText)) = (4 * Integer(BufferSize));
+  finally
+    EncodedStream.Free;
+    DecodedStream.Free;
+  end;
+end;
+{ -------------------------------------------------------------------------- }
+function BufferToBase64(const Buf; BufSize : Cardinal) : String;
+var
+  DecodedStream, EncodedStream : TStream;
+  RawText : RawByteString;
+begin
+  DecodedStream := nil;
+  EncodedStream := nil;
+  try
+    DecodedStream := TMemoryStream.Create;
+    DecodedStream.Write(Buf, BufSize);
+    DecodedStream.Position := 0;
+
+    EncodedStream := TMemoryStream.Create;
+    LbEncodeBase64(DecodedStream, EncodedStream);
+
+    EncodedStream.Position := 0;
+    SetLength(RawText, EncodedStream.Size);
+    EncodedStream.Read(RawText[1], EncodedStream.Size);
+  finally
+    DecodedStream.Free;
+    EncodedStream.Free;
+  end;
+
+  Result := UTF8ToString(RawText);
+end;
 { -------------------------------------------------------------------------- }
 function BufferToHex(const Buf; BufSize : Cardinal) : string;
 var
