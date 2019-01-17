@@ -108,9 +108,7 @@ procedure RDLEncryptStreamCBC(InStream, OutStream : TStream;
             const Key; KeySize : Longint; Encrypt : Boolean);
 
 { high level hashing routines }
-procedure FileHashMD5(var Digest : TMD5Digest; const AFileName : string);
 procedure StreamHashMD5(var Digest : TMD5Digest; AStream : TStream);
-procedure FileHashSHA1(var Digest : TSHA1Digest; const AFileName : string);
 procedure StreamHashSHA1(var Digest : TSHA1Digest; AStream : TStream);
 
 
@@ -1334,18 +1332,6 @@ end;
 
 
 { == MD5 =================================================================== }
-procedure FileHashMD5(var Digest : TMD5Digest; const AFileName : string);
-var
-  FS : TFileStream;
-begin
-  FS := TFileStream.Create(AFileName, fmOpenRead);
-  try
-    StreamHashMD5(Digest, FS);
-  finally
-    FS.Free;
-  end;
-end;
-{ -------------------------------------------------------------------------- }
 procedure StreamHashMD5(var Digest : TMD5Digest; AStream : TStream);
 var
   BufSize : Cardinal;
@@ -1363,18 +1349,6 @@ end;
 
 
 { == SHA1 ================================================================== }
-procedure FileHashSHA1(var Digest : TSHA1Digest; const AFileName : string);
-var
-  FS : TFileStream;
-begin
-  FS := TFileStream.Create(AFileName, fmOpenRead);
-  try
-    StreamHashSHA1(Digest, FS);
-  finally
-    FS.Free;
-  end;
-end;
-{ -------------------------------------------------------------------------- }
 procedure StreamHashSHA1(var Digest : TSHA1Digest; AStream : TStream);
 var
   BufSize : Cardinal;

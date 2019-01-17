@@ -336,13 +336,8 @@ end;
 { -------------------------------------------------------------------------- }
 procedure TLbDSAParameters.SetQAsString(const Value : string);
   { set q to value represented by "big to little" hex string }
-var
-  Buf : TLbDSABlock;
 begin
-  FillChar(Buf, SizeOf(Buf), #0);
-  HexToBuffer(Value, Buf, SizeOf(Buf));
-  FQ.CopyBuffer(Buf, SizeOf(Buf));
-  FQ.Trim;
+  FQ.IntStr := Value;
 end;
 { -------------------------------------------------------------------------- }
 function TLbDSAParameters.GetGAsString : string;
@@ -353,13 +348,8 @@ end;
 { -------------------------------------------------------------------------- }
 procedure TLbDSAParameters.SetGAsString(const Value : string);
   { set g to value represented by "big to little" hex string }
-var
-  Buf : array[Byte] of Byte;
 begin
-  FillChar(Buf, SizeOf(Buf), #0);
-  HexToBuffer(Value, Buf, cLbAsymKeyBytes[FKeySize]);
-  FG.CopyBuffer(Buf, cLbAsymKeyBytes[FKeySize]);
-  FG.Trim;
+  FG.IntStr := Value;
 end;
 { -------------------------------------------------------------------------- }
 procedure TLbDSAParameters.CopyDSAParameters(aKey : TLbDSAParameters);
@@ -637,13 +627,8 @@ end;
 { -------------------------------------------------------------------------- }
 procedure TLbDSAPrivateKey.SetXAsString(const Value : string);
   { set x to value represented by "big to little" hex string }
-var
-  Buf : TLbDSABlock;
 begin
-  FillChar(Buf, SizeOf(Buf), #0);
-  HexToBuffer(Value, Buf, SizeOf(Buf));
-  FX.CopyBuffer(Buf, SizeOf(Buf));
-  FX.Trim;
+  FX.IntStr := Value;
 end;
 { -------------------------------------------------------------------------- }
 {!!.06}
@@ -735,13 +720,8 @@ end;
 { -------------------------------------------------------------------------- }
 procedure TLbDSAPublicKey.SetYAsString(const Value : string);
   { set y to value represented by "big to little" hex string }
-var
-  Buf : array[Byte] of Byte;
 begin
-  FillChar(Buf, SizeOf(Buf), #0);
-  HexToBuffer(Value, Buf, cLbAsymKeyBytes[FKeySize]);
-  FY.CopyBuffer(Buf, cLbAsymKeyBytes[FKeySize]);
-  FY.Trim;
+  FY.IntStr := Value;
 end;
 { -------------------------------------------------------------------------- }
 {!!.06}
@@ -1090,10 +1070,14 @@ end;
 procedure TLbDSA.SignFile(const AFileName : string);
   { generate DSA signature of file data }
 var
-  Digest : TSHA1Digest;
+  Stream : TStream;
 begin
-  FileHashSHA1(Digest, AFileName);
-  SignHash(Digest);
+  Stream := TFileStream.Create(AFileName, fmOpenRead);
+  try
+    SignStream(Stream);
+  finally
+    Stream.Free;
+  end;
 end;
 { -------------------------------------------------------------------------- }
 procedure TLbDSA.SignStream(AStream : TStream);
@@ -1107,11 +1091,8 @@ end;
 { -------------------------------------------------------------------------- }
 procedure TLbDSA.SignString(const AStr : RawByteString);
   { generate DSA signature of string data }
-var
-  Digest : TSHA1Digest;
 begin
-  StringHashSHA1(Digest, AStr);
-  SignHash(Digest);
+  SignBuffer(AStr[1], Length(AStr));
 end;
 { -------------------------------------------------------------------------- }
 function TLbDSA.VerifyBuffer(const Buf; BufLen : Cardinal) : Boolean;
@@ -1126,10 +1107,14 @@ end;
 function TLbDSA.VerifyFile(const AFileName : string) : Boolean;
   { verify DSA signature agrees with file data }
 var
-  Digest : TSHA1Digest;
+  Stream : TStream;
 begin
-  FileHashSHA1(Digest, AFileName);
-  Result := VerifyHash(Digest);
+  Stream := TFileStream.Create(AFileName, fmOpenRead);
+  try
+    Result := VerifyStream(Stream);
+  finally
+    Stream.Free;
+  end;
 end;
 { -------------------------------------------------------------------------- }
 function TLbDSA.VerifyStream(AStream : TStream) : Boolean;
@@ -1143,11 +1128,8 @@ end;
 { -------------------------------------------------------------------------- }
 function TLbDSA.VerifyString(const AStr : RawByteString) : Boolean;
   { verify DSA signature agrees with string data }
-var
-  Digest : TSHA1Digest;
 begin
-  StringHashSHA1(Digest, AStr);
-  Result := VerifyHash(Digest);
+  Result := VerifyBuffer(AStr[1], Length(AStr));
 end;
 
 end.

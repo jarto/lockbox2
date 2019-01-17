@@ -38,11 +38,17 @@ interface
 uses
   SysUtils;
 
+function HexToBase64(const HexValue : String) : String;
+function Base64ToHex(const Base64Value : String) : String;
+function BufferToBase64(const Buf; BufSize : Cardinal) : String;
+function Base64ToBuffer(const Base64Text : string; var Buf; out BufferSize : Cardinal) : Boolean;
 function BufferToHex(const Buf; BufSize : Cardinal) : string;
 function HexToBuffer(const Hex : string; var Buf; BufSize : Cardinal) : Boolean;
 function Min(A, B : LongInt) : LongInt;
 function Max(A, B : LongInt) : LongInt;
 function CompareBuffers(const Buf1, Buf2; BufSize : Cardinal) : Boolean;
+function ASN1HexSize(AByteCount : Integer) : String;
+
 
 {$IFDEF Debugging}
 procedure DebugStr(const AStr : string);
@@ -57,6 +63,10 @@ function UTF8ToString(const AValue: UTF8String): String;
 
 
 implementation
+
+uses
+  Classes,
+  LbString;
 
 {$IFDEF FPC}
   function UTF8ToString(const AValue: UTF8String): String;
@@ -119,7 +129,93 @@ begin
 end;
 {$ENDIF}
 
+{ -------------------------------------------------------------------------- }
+function HexToBase64(const HexValue : String) : String;
+var
+  Stream : TMemoryStream;
+begin
+  Stream := TMemoryStream.Create;
+  Stream.Size := Length(HexValue) div 2;
+  try
+    HexToBuffer(HexValue, Stream.Memory^, Stream.Size);
+    Stream.Position := 0;
+    Result := BufferToBase64(Stream.Memory^, Stream.Size);
+  finally
+    Stream.Free;
+  end;
+end;
 
+{ -------------------------------------------------------------------------- }
+function Base64ToHex(const Base64Value : String) : String;
+var
+  Stream : TMemoryStream;
+  BufferSize : Cardinal;
+begin
+  Stream := TMemoryStream.Create;
+  Stream.Size := Length(Base64Value) * 3 div 4;
+  try
+    Base64ToBuffer(Base64Value, Stream.Memory^, BufferSize);
+    assert(Stream.Size = BufferSize);
+    Stream.Position := 0;
+    Result := BufferToHex(Stream.Memory^, Stream.Size);
+  finally
+    Stream.Free;
+  end;
+end;
+
+{ -------------------------------------------------------------------------- }
+function Base64ToBuffer(const Base64Text : string; var Buf; out BufferSize : Cardinal) : Boolean;
+var
+  EncodedStream, DecodedStream : TStream;
+  RawText : RawByteString;
+begin
+  RawText := StringToUTF8(Base64Text);
+
+  EncodedStream := nil;
+  DecodedStream := nil;
+  try
+    EncodedStream := TMemoryStream.Create;
+    EncodedStream.Write(RawText[1],Length(RawText));
+    EncodedStream.Position := 0;
+
+    DecodedStream := TMemoryStream.Create;
+    LbDecodeBase64(EncodedStream, DecodedStream);
+
+    DecodedStream.Position := 0;
+    BufferSize := DecodedStream.Size;
+    DecodedStream.Read(Buf, BufferSize);
+    Result := (3 * Length(RawText)) = (4 * Integer(BufferSize));
+  finally
+    EncodedStream.Free;
+    DecodedStream.Free;
+  end;
+end;
+{ -------------------------------------------------------------------------- }
+function BufferToBase64(const Buf; BufSize : Cardinal) : String;
+var
+  DecodedStream, EncodedStream : TStream;
+  RawText : RawByteString;
+begin
+  DecodedStream := nil;
+  EncodedStream := nil;
+  try
+    DecodedStream := TMemoryStream.Create;
+    DecodedStream.Write(Buf, BufSize);
+    DecodedStream.Position := 0;
+
+    EncodedStream := TMemoryStream.Create;
+    LbEncodeBase64(DecodedStream, EncodedStream);
+
+    EncodedStream.Position := 0;
+    SetLength(RawText, EncodedStream.Size);
+    EncodedStream.Read(RawText[1], EncodedStream.Size);
+  finally
+    DecodedStream.Free;
+    EncodedStream.Free;
+  end;
+
+  Result := UTF8ToString(RawText);
+end;
 { -------------------------------------------------------------------------- }
 function BufferToHex(const Buf; BufSize : Cardinal) : string;
 var
@@ -182,6 +278,29 @@ begin
       Break;
   end;
 end;
+{ -------------------------------------------------------------------------- }
+function ASN1HexSize(AByteCount : Integer) : String;
+const
+  EXTENDED_SIZE_TAG = '8%d';
+var
+  BytePower : Byte;
+begin
+  BytePower := 0;
+  while (AByteCount <> 0) do
+  begin
+    AByteCount := AByteCount shr 8;
+    inc(BytePower);
+  end;
+
+  Result := IntToHex(AByteCount, 2 * BytePower);
+  //if the size is greater than 127 bytes, prefix the size with 8x,
+  //where x is the number of bytes needed to represent the byte count as a number
+  if (AByteCount > 127) then
+  begin
+    Result := Format(EXTENDED_SIZE_TAG,[BytePower]) + Result;
+  end;
+end;
+
 
 end.
 
