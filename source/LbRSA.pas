@@ -143,6 +143,7 @@ type
   private
     function GetCryptoServiceProviderXML(AIsForPrivateKey : Boolean) : String;
     function CalculatePQ : Boolean;
+    function GetOpenSSLText(AIsForPrivateKey: Boolean): String;
   protected {private}
       FPrivateKey : TLbRSAKey;
       FPublicKey : TLbRSAKey;
@@ -169,6 +170,7 @@ type
       property PublicKey : TLbRSAKey read FPublicKey;
 
       property CryptoServiceProviderXML[AIsForPrivateKey : Boolean] : String read GetCryptoServiceProviderXML;
+      property OpenSSLText[AIsForPrivateKey : Boolean] : String read GetOpenSSLText;
     published {properties}
       property PrimeTestIterations : Byte read FPrimeTestIterations write FPrimeTestIterations;
       property KeySize;
@@ -1195,6 +1197,108 @@ begin
 
   Result := Format(XML_TAG,[RSA_KEY_VALUE,Text]);
 end;
+{ -------------------------------------------------------------------------- }
+function TLbRSA.GetOpenSSLText(AIsForPrivateKey: Boolean): String;
+const
+  PRIVACY_TO_TEXT : array[Boolean] of string = ('PUBLIC','PRIVATE');
+  SEQUENCE_TAG = '30';
+  INTEGER_TAG = '02';
+  BLOCK_FORMAT = '-----%s RSA %s KEY-----' + sLineBreak;
+  MAX_CHARACTERS_PER_LINE = 64;
+var
+  Text, PrivacyText, HeaderLine, FooterLine, BlockText : String;
+  P1, Q1, DP, DQ, QInv, TempBigInt : TLbBigInt;
+  Index, LastIndex : Integer;
+begin
+  Text := INTEGER_TAG + FPublicKey.Modulus.ASN1Text;
+  Text := Text + INTEGER_TAG + FPublicKey.Exponent.ASN1Text;
+  if AIsForPrivateKey then
+  begin
+    Text := Text + INTEGER_TAG + FPrivateKey.Exponent.ASN1Text;
+
+    if not CalculatePQ then
+    begin
+      raise Exception.Create('Cannot calculate prime numbers');
+    end;
+
+    Text := Text + INTEGER_TAG + FFirstPrime.ASN1Text;
+    Text := Text + INTEGER_TAG + FSecondPrime.ASN1Text;
+
+    P1 := TLbBigInt.Create(FFirstPrime.Size);
+    try
+      P1.Copy(FFirstPrime);
+      P1.SubtractByte($01);
+
+      DP := TlbBigInt.Create(P1.Size);
+      try
+        DP.Copy(FPrivateKey.Exponent);
+        DP.Modulus(P1);
+        Text := Text + INTEGER_TAG + DP.ASN1Text;
+      finally
+        DP.Free;
+      end;
+    finally
+      P1.Free;
+    end;
+
+    Q1 := TLbBigInt.Create(FSecondPrime.Size);
+    try
+      Q1.Copy(FSecondPrime);
+      Q1.SubtractByte($01);
+
+      DQ := TlbBigInt.Create(Q1.Size);
+      try
+        DQ.Copy(FPrivateKey.Exponent);
+        DQ.Modulus(Q1);
+        Text := Text + INTEGER_TAG + DQ.ASN1Text;
+      finally
+        DQ.Free;
+      end;
+    finally
+      Q1.Free;
+    end;
+
+    QInv := TLbBigInt.Create(FSecondPrime.Size);
+    try
+      QInv.Copy(FSecondPrime);
+      QInv.ModInv(FFirstPrime);
+      Text := Text + INTEGER_TAG + QInv.ASN1Text;
+    finally
+      QInv.Free;
+    end;
+  end;
+
+  if AIsForPrivateKey then
+  begin
+    TempBigInt := TLbBigInt.Create(Length(Text));
+    try
+      //prepend version 0
+      TempBigInt.AppendByte(0);
+      Text := INTEGER_TAG + TempBigInt.ASN1Text + Text;
+    finally
+      TempBigInt.Free;
+    end;
+  end;
+
+  Text := SEQUENCE_TAG + ASN1HexSize(Length(Text) div 2) + Text;
+
+  Text := HexToBase64(Text);
+
+  Index := 1;
+  BlockText := '';
+  LastIndex := Length(Text) + 1;
+  while (Index < LastIndex) do
+  begin
+    BlockText := BlockText + Copy(Text, Index, MAX_CHARACTERS_PER_LINE) + sLineBreak;
+    inc(Index, MAX_CHARACTERS_PER_LINE);
+  end;
+
+  PrivacyText := PRIVACY_TO_TEXT[AIsForPrivateKey];
+  HeaderLine := Format(BLOCK_FORMAT,['BEGIN',PrivacyText]);
+  FooterLine := Format(BLOCK_FORMAT,['END',PrivacyText]);
+  Result := HeaderLine + BlockText + FooterLine;
+end;
+
 { -------------------------------------------------------------------------- }
 function TLbRSA.OutBufSizeNeeded(InBufSize : Cardinal) : Cardinal;
   { return size of ciphertext buffer required to encrypt plaintext InBuf }
