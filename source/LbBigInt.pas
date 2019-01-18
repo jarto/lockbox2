@@ -72,7 +72,7 @@ type
     function GetBase64Str : string;
     procedure SetBase64Str(const Value: string);
     procedure SetHexStr(const Value: string);
-    function GetASN1Text: String;
+    function GetASNTriplet: String;
   protected {private}
       FI : LbInteger;
       procedure setSign(value : Boolean);
@@ -148,7 +148,7 @@ type
       property IntStr : string read GetHexStr write SetHexStr;
       property Size : integer read GetSize;
       property Base64Str : string read GetBase64Str write SetBase64Str;
-      property ASN1Text : String read GetASN1Text;
+      property ASNTriplet : String read GetASNTriplet;
 
 end;
 
@@ -2628,10 +2628,13 @@ begin
   LbGreatestCommonDivisor(self, I2);
 end;
 { ------------------------------------------------------------------- }
-function TLbBigInt.GetASN1Text: String;
+function TLbBigInt.GetASNTriplet: String;
+const
+  INTEGER_TAG = '02';
 var
   ReversedBigInt : TLbBigInt;
 begin
+  //the byte order in openSSL is reversed compared with lockbox
   ReversedBigInt := TlbBigInt.Create(Size);
   try
     ReversedBigInt.Copy(self);
@@ -2642,7 +2645,7 @@ begin
     end;
 
     ReversedBigInt.ReverseBytes(False); //don't trim the null byte
-    Result := ASN1HexSize(ReversedBigInt.Size) + ReversedBigInt.IntStr;
+    Result := INTEGER_TAG + ASN1HexSize(ReversedBigInt.Size) + ReversedBigInt.IntStr;
   finally
     ReversedBigInt.Free;
   end;
