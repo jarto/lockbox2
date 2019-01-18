@@ -1123,15 +1123,14 @@ var
   Text : String;
   ReversedBigInt, P1, Q1 : TLbBigInt;
 begin
+  //the byte order in MS cryptography is reversed compared with lockbox
   ReversedBigInt := TlbBigInt.Create(cLbAsymKeyBytes[FKeySize]);
   try
     ReversedBigInt.Copy(FPublicKey.Modulus);
-    ReversedBigInt.Trim;
     ReversedBigInt.ReverseBytes;
     Text := Format(XML_TAG, [RSA_MODULUS, ReversedBigInt.Base64Str]);
 
     ReversedBigInt.Copy(FPublicKey.Exponent);
-    ReversedBigInt.Trim;
     ReversedBigInt.ReverseBytes;
     Text := Text + Format(XML_TAG, [RSA_PUBLIC_EXPONENT, ReversedBigInt.Base64Str]);
 
@@ -1143,12 +1142,10 @@ begin
       end;
 
       ReversedBigInt.Copy(FFirstPrime);
-      ReversedBigInt.Trim;
       ReversedBigInt.ReverseBytes;
       Text := Text + Format(XML_TAG, [RSA_PRIME_ONE, ReversedBigInt.Base64Str]);
 
       ReversedBigInt.Copy(FSecondPrime);
-      ReversedBigInt.Trim;
       ReversedBigInt.ReverseBytes;
       Text := Text + Format(XML_TAG, [RSA_PRIME_TWO, ReversedBigInt.Base64Str]);
 
@@ -1159,7 +1156,6 @@ begin
 
         ReversedBigInt.Copy(FPrivateKey.Exponent);
         ReversedBigInt.Modulus(P1);
-        ReversedBigInt.Trim;
         ReversedBigInt.ReverseBytes;
         Text := Text + Format(XML_TAG, [RSA_D_MOD_PRIME_ONE, ReversedBigInt.Base64Str]);
       finally
@@ -1173,7 +1169,6 @@ begin
 
         ReversedBigInt.Copy(FPrivateKey.Exponent);
         ReversedBigInt.Modulus(Q1);
-        ReversedBigInt.Trim;
         ReversedBigInt.ReverseBytes;
         Text := Text + Format(XML_TAG, [RSA_D_MOD_PRIME_TWO, ReversedBigInt.Base64Str]);
       finally
@@ -1182,12 +1177,10 @@ begin
 
       ReversedBigInt.Copy(FSecondPrime);
       ReversedBigInt.ModInv(FFirstPrime);
-      ReversedBigInt.Trim;
       ReversedBigInt.ReverseBytes;
       Text := Text + Format(XML_TAG, [RSA_PRIME_TWO_INVERSE, ReversedBigInt.Base64Str]);
 
       ReversedBigInt.Copy(FPrivateKey.Exponent);
-      ReversedBigInt.Trim;
       ReversedBigInt.ReverseBytes;
       Text := Text + Format(XML_TAG, [RSA_PRIVATE_EXPONENT, ReversedBigInt.Base64Str]);
     end;
@@ -1202,7 +1195,6 @@ function TLbRSA.GetOpenSSLText(AIsForPrivateKey: Boolean): String;
 const
   PRIVACY_TO_TEXT : array[Boolean] of string = ('PUBLIC','PRIVATE');
   SEQUENCE_TAG = '30';
-  INTEGER_TAG = '02';
   BLOCK_FORMAT = '-----%s RSA %s KEY-----' + sLineBreak;
   MAX_CHARACTERS_PER_LINE = 64;
 var
@@ -1210,19 +1202,17 @@ var
   P1, Q1, DP, DQ, QInv, TempBigInt : TLbBigInt;
   Index, LastIndex : Integer;
 begin
-  Text := INTEGER_TAG + FPublicKey.Modulus.ASN1Text;
-  Text := Text + INTEGER_TAG + FPublicKey.Exponent.ASN1Text;
+  Text := FPublicKey.Modulus.ASNTriplet + FPublicKey.Exponent.ASNTriplet;
   if AIsForPrivateKey then
   begin
-    Text := Text + INTEGER_TAG + FPrivateKey.Exponent.ASN1Text;
+    Text := Text + FPrivateKey.Exponent.ASNTriplet;
 
     if not CalculatePQ then
     begin
       raise Exception.Create('Cannot calculate prime numbers');
     end;
 
-    Text := Text + INTEGER_TAG + FFirstPrime.ASN1Text;
-    Text := Text + INTEGER_TAG + FSecondPrime.ASN1Text;
+    Text := Text + FFirstPrime.ASNTriplet + FSecondPrime.ASNTriplet;
 
     P1 := TLbBigInt.Create(FFirstPrime.Size);
     try
@@ -1233,7 +1223,7 @@ begin
       try
         DP.Copy(FPrivateKey.Exponent);
         DP.Modulus(P1);
-        Text := Text + INTEGER_TAG + DP.ASN1Text;
+        Text := Text + DP.ASNTriplet;
       finally
         DP.Free;
       end;
@@ -1250,7 +1240,7 @@ begin
       try
         DQ.Copy(FPrivateKey.Exponent);
         DQ.Modulus(Q1);
-        Text := Text + INTEGER_TAG + DQ.ASN1Text;
+        Text := Text + DQ.ASNTriplet;
       finally
         DQ.Free;
       end;
@@ -1262,7 +1252,7 @@ begin
     try
       QInv.Copy(FSecondPrime);
       QInv.ModInv(FFirstPrime);
-      Text := Text + INTEGER_TAG + QInv.ASN1Text;
+      Text := Text + QInv.ASNTriplet;
     finally
       QInv.Free;
     end;
@@ -1274,7 +1264,7 @@ begin
     try
       //prepend version 0
       TempBigInt.AppendByte(0);
-      Text := INTEGER_TAG + TempBigInt.ASN1Text + Text;
+      Text := TempBigInt.ASNTriplet + Text;
     finally
       TempBigInt.Free;
     end;
